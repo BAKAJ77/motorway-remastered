@@ -1,5 +1,6 @@
 #include <core/window_frame.h>
 #include <util/logging_system.h>
+#include <util/formatted_exception.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -23,10 +24,10 @@ WindowFrame::WindowFrame(std::string_view title, const glm::ivec2& size, bool re
 		glfwCreateWindow(size.x, size.y, title.data(), nullptr, nullptr);
 
 	if (!m_windowStruct)
-		LoggingSystem::GetInstance().Output("Failed to create the GLFW window struct object.", LoggingSystem::Severity::FATAL);
+		throw FormattedException("Failed to create the GLFW window struct object.");
 
 	glfwMakeContextCurrent(m_windowStruct);
-	
+
 	if (m_vsync)
 		glfwSwapInterval(1);
 
@@ -36,7 +37,7 @@ WindowFrame::WindowFrame(std::string_view title, const glm::ivec2& size, bool re
 
 	// Load the addresses for all the OpenGL functions
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-		LoggingSystem::GetInstance().Output("Failed to load the addresses for the OpenGL functions.", LoggingSystem::Severity::FATAL);
+		throw FormattedException("Failed to load the addresses for the OpenGL functions.");
 }
 
 WindowFrame::WindowFrame(WindowFrame&& temp) noexcept :

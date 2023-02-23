@@ -1,9 +1,11 @@
 #include <core/window_frame.h>
+#include <util/formatted_exception.h>
 #include <util/logging_system.h>
 #include <util/time.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 int main()
 {
@@ -11,7 +13,7 @@ int main()
 	{
 		// Initialize the GLFW library
 		if (!glfwInit())
-			LoggingSystem::GetInstance().Output("Failed to initialize the GLFW library.", LoggingSystem::Severity::FATAL);
+			throw FormattedException("Failed to initialize the GLFW library");
 
 		// Create the application window
 		WindowFrame applicationFrame("Motorway Remastered", { 1600, 900 }, false, false, false);
@@ -46,9 +48,21 @@ int main()
 			elapsedRenderTime = postRenderTime - preRenderTime;
 		}
 	}
-	catch (int& exceptionCode)
+	catch (std::exception& e)
 	{
-		return exceptionCode;
+		FormattedException* formattedException = dynamic_cast<FormattedException*>(&e); // Check if the exception thrown is formatted
+
+		if (formattedException)
+			LoggingSystem::GetInstance().Output(formattedException->what(), LoggingSystem::Severity::FATAL, formattedException->GetArgs());
+		else
+			LoggingSystem::GetInstance().Output(e.what(), LoggingSystem::Severity::FATAL);
+
+#ifdef _DEBUG
+		std::cin.get();
+#endif
+
+		glfwTerminate();
+		return EXIT_FAILURE;
 	}
 
 	glfwTerminate();
