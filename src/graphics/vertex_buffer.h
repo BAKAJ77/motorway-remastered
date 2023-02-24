@@ -27,15 +27,23 @@ public:
 	VertexBuffer& operator=(const VertexBuffer& other) = delete;
 	VertexBuffer& operator=(VertexBuffer&& temp) noexcept;
 
+	// Pushes vertex layout to vector which is used for configuring the vertex attributes.
 	void PushLayout(uint32_t index, uint32_t type, uint32_t size, size_t strideBytes, size_t offsetBytes = 0, uint32_t divisor = 0,
 		bool normalize = false);
 
+	// Updates the data at the specified offset in the buffer with the new data provided.
 	void ModifyData(const void* data, size_t offset, size_t size);
 
+	// Binds the vertex buffer.
 	void Bind() const;
+
+	// Unbinds the vertex buffer.
 	void Unbind() const;
 
+	// Returns the vector containing all the specified vertex layouts.
 	const std::vector<Layout>& GetVertexLayouts() const;
+
+	// Returns the ID of the vertex buffer.
 	const uint32_t& GetID() const;
 };
 

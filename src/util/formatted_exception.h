@@ -12,6 +12,7 @@ public:
 	FormattedException(std::string_view str, ...);
 	~FormattedException();
 
+	// Returns the additional arguments given to replace the format specifiers in the given exception string.
 	va_list GetArgs();
 };
 

@@ -18,11 +18,16 @@ public:
 	IndexBuffer& operator=(const IndexBuffer& other) = delete;
 	IndexBuffer& operator=(IndexBuffer&& temp) noexcept;
 
+	// Updates the data at the specified offset in the buffer with the new data provided.
 	void ModifyData(const void* data, size_t offset, size_t size);
 
+	// Binds the index buffer.
 	void Bind() const;
+
+	// Unbinds the index buffer.
 	void Unbind() const;
 
+	// Returns the ID of the index buffer.
 	const uint32_t& GetID() const;
 };
 
