@@ -14,10 +14,12 @@ private:
 public:
 	WindowFrame();
 	WindowFrame(std::string_view title, const glm::ivec2& size, bool resizable, bool fullscreen, bool vsync);
+	WindowFrame(const WindowFrame& other) = delete;
 	WindowFrame(WindowFrame&& temp) noexcept;
 
 	~WindowFrame();
 
+	WindowFrame& operator=(const WindowFrame& other) = delete;
 	WindowFrame& operator=(WindowFrame&& temp) noexcept;
 
 	// Sets the position of the window.
