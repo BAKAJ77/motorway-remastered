@@ -9,25 +9,9 @@ TextureBuffer::TextureBuffer(uint32_t target, const glm::ivec2& size) :
     m_id(0), m_target(target), m_size(size)
 {}
 
-TextureBuffer::TextureBuffer(TextureBuffer&& temp) noexcept :
-    m_id(temp.m_id), m_target(temp.m_target), m_size(temp.m_size)
-{
-    temp.m_id = 0;
-}
-
 TextureBuffer::~TextureBuffer()
 {
     glDeleteTextures(1, &m_id);
-}
-
-TextureBuffer& TextureBuffer::operator=(TextureBuffer&& temp) noexcept
-{
-    m_id = temp.m_id;
-    m_target = temp.m_target;
-    m_size = temp.m_size;
-
-    temp.m_id = 0;
-    return *this;
 }
 
 void TextureBuffer::SetFilter(uint32_t min, uint32_t mag) const

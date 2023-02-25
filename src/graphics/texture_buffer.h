@@ -14,12 +14,10 @@ public:
 	TextureBuffer();
 	TextureBuffer(uint32_t target, const glm::ivec2& size);
 	TextureBuffer(const TextureBuffer& other) = delete;
-	TextureBuffer(TextureBuffer&& temp) noexcept;
 
 	virtual ~TextureBuffer();
 
 	TextureBuffer& operator=(const TextureBuffer& other) = delete;
-	TextureBuffer& operator=(TextureBuffer&& temp) noexcept;
 
 	// Selects which magnification and minification filter method to apply on the texture. 
 	void SetFilter(uint32_t min, uint32_t mag) const;
