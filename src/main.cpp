@@ -1,5 +1,6 @@
 #include <core/window_frame.h>
 #include <core/shader_system.h>
+#include <core/texture_system.h>
 
 #include <graphics/vertex_array.h>
 
@@ -27,18 +28,26 @@ int main()
 
 		// Setup other objects here (TEMPORARY)
 		ShaderSystem::GetInstance().Load("Geometry", { "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh" });
+		TextureSystem::GetInstance().Load("Grass", "textures/test.jpg", false, false);
 
-		float vertices[] = { -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f };
+		float vertices[] = { 
+			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
+			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f
+		};
+
 		uint32_t indices[] = { 0, 1, 2, 1, 2, 3 };
 
 		VertexBuffer vbo(vertices, sizeof(vertices), GL_STATIC_DRAW);
-		vbo.PushLayout(0, GL_FLOAT, 3, 3 * sizeof(float));
+		vbo.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+		vbo.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
 
 		IndexBuffer ibo(indices, sizeof(indices), GL_STATIC_DRAW);
 
 		VertexArray vao;
 		vao.AttachBuffers(vbo, &ibo);
-		
+
 		// The main loop of the application
 		constexpr float timeStep = 0.001f;
 		float accumulatedRenderTime = 0.0f, elapsedRenderTime = 0.0f;
@@ -60,8 +69,10 @@ int main()
 			//////// TEMPORARY ///////
 
 			ShaderSystem::GetInstance().GetShader("Geometry").Bind();
-			ShaderSystem::GetInstance().GetShader("Geometry").SetUniformEx("color", { 1.0f, 0.0f, 0.0f, 1.0f });
+			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("diffuseTexture", 0);
+			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("useTexture", true);
 
+			TextureSystem::GetInstance().GetTexture("Grass").Bind(0);
 			vao.Bind();
 
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

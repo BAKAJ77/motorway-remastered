@@ -1,8 +1,19 @@
 #version 330 core
 
-uniform vec4 color;
+in VSH_OUT
+{
+    vec2 uvCoords;
+} fshIn;
+
+uniform vec4 diffuseColor;
+uniform sampler2D diffuseTexture;
+uniform bool useTexture;
 
 void main()
 {
-    gl_FragColor = color;
+    vec4 finalColor = diffuseColor;
+    if (useTexture)
+        finalColor = texture(diffuseTexture, fshIn.uvCoords);
+
+    gl_FragColor = finalColor;
 }
