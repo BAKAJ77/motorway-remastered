@@ -14,13 +14,13 @@ private:
 public:
 	~ShaderSystem() = default;
 
-	// Loads and keeps copy of the shader for which can be accessed using the GetShader() method.
+	// Loads shader from file and keeps a copy of it, which can be accessed using the GetShader() method.
 	void Load(const std::string_view id, ShaderProgram&& shader);
 
-	// Destroys the shader with the specified ID.
+	// Destroys the stored shader that is attached to the specified ID.
 	void Destroy(const std::string_view id);
 
-	// Returns reference to the shader with the specified ID.
+	// Returns reference to the stored shader that is attached to the specified ID.
 	ShaderProgram& GetShader(const std::string_view& id);
 
 	// Returns singleton instance of the class.
