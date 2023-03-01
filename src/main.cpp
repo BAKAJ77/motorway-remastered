@@ -1,8 +1,10 @@
 #include <core/window_frame.h>
 #include <core/shader_system.h>
 #include <core/texture_system.h>
+#include <core/input_system.h>
 
 #include <graphics/vertex_array.h>
+#include <graphics/camera_3d.h>
 
 #include <util/formatted_exception.h>
 #include <util/logging_system.h>
@@ -11,6 +13,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 int main()
 {
@@ -22,9 +25,13 @@ int main()
 
 		// Create the application window
 		WindowFrame applicationFrame("Motorway Remastered", { 1600, 900 }, false, false, false);
+		applicationFrame.SetCursorMode(false);
 		
 		LoggingSystem::GetInstance().Output("GLFW version: %s", LoggingSystem::Severity::INFO, applicationFrame.GetGLFWVersion().c_str());
 		LoggingSystem::GetInstance().Output("OpenGL version: %s", LoggingSystem::Severity::INFO, applicationFrame.GetOpenGLVersion().c_str());
+
+		// Initialize the input system
+		InputSystem::GetInstance().SetFocusedWindow(applicationFrame);
 
 		// Setup other objects here (TEMPORARY)
 		ShaderSystem::GetInstance().Load("Geometry", { "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh" });
@@ -48,6 +55,8 @@ int main()
 		VertexArray vao;
 		vao.AttachBuffers(vbo, &ibo);
 
+		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
+
 		// The main loop of the application
 		constexpr float timeStep = 0.001f;
 		float accumulatedRenderTime = 0.0f, elapsedRenderTime = 0.0f;
@@ -59,6 +68,8 @@ int main()
 			while (accumulatedRenderTime >= timeStep)
 			{
 				// *The Update function should be here* //
+				InputSystem::GetInstance().Update();
+				camera.Update();
 
 				accumulatedRenderTime -= timeStep;
 			}
@@ -71,6 +82,13 @@ int main()
 			ShaderSystem::GetInstance().GetShader("Geometry").Bind();
 			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("diffuseTexture", 0);
 			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("useTexture", true);
+
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, { 0.0f, 0.0f, -5.0f });
+			model = glm::scale(model, { 1.2f, 1.2f, 1.0f });
+
+			ShaderSystem::GetInstance().GetShader("Geometry").SetUniformEx("modelMatrix", model);
+			ShaderSystem::GetInstance().GetShader("Geometry").SetUniformEx("cameraMatrix", camera.GetProjectionMatrix() * camera.GetViewMatrix());
 
 			TextureSystem::GetInstance().GetTexture("Grass").Bind(0);
 			vao.Bind();
