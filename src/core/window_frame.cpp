@@ -93,7 +93,6 @@ void WindowFrame::Clear(const glm::vec3& fillColor)
 
 void WindowFrame::Update() const
 {
-	glfwPollEvents();
 	glfwSwapBuffers(m_windowStruct);
 }
 

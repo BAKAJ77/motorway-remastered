@@ -37,7 +37,7 @@ public:
 	// Clears the window's back draw buffer.
 	void Clear(const glm::vec3& fillColor);
 
-	// Polls for events and swaps the draw buffers.
+	// Swaps the window's draw buffers.
 	void Update() const;
 	
 	// Returns TRUE if the window was requested to close.
