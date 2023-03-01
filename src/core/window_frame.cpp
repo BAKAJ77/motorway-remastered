@@ -135,3 +135,8 @@ bool WindowFrame::IsVSyncEnabled() const
 {
 	return m_vsync;
 }
+
+GLFWwindow* WindowFrame::GetFrameStruct() const
+{
+	return m_windowStruct;
+}

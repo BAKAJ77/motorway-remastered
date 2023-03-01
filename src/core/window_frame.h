@@ -60,6 +60,9 @@ public:
 
 	// Returns TRUE if the window has VSync enabled.
 	bool IsVSyncEnabled() const;
+
+	// Returns pointer to the GLFWwindow struct.
+	GLFWwindow* GetFrameStruct() const;
 };
 
 #endif
