@@ -73,6 +73,11 @@ void WindowFrame::SetSize(const glm::ivec2& size)
 	glfwSetWindowSize(m_windowStruct, size.x, size.y);
 }
 
+void WindowFrame::SetCursorMode(bool enabled) const
+{
+	glfwSetInputMode(m_windowStruct, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
 void WindowFrame::RequestClose() const
 {
 	glfwSetWindowShouldClose(m_windowStruct, true);

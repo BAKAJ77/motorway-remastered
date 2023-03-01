@@ -28,6 +28,9 @@ public:
 	// Sets the size of the window.
 	void SetSize(const glm::ivec2& size);
 
+	// Sets whether the cursor is enabled or disabled (locked to window)
+	void SetCursorMode(bool enabled) const;
+
 	// Requests for the window to be closed.
 	void RequestClose() const;
 
