@@ -51,6 +51,7 @@ int main()
 			while (accumulatedRenderTime >= timeStep)
 			{
 				///////////////////////////////// CAMERA CONTROLS (TEMPORARY) /////////////////////////////////
+
 				const glm::vec3 cameraDirection = camera.GetDirection();
 				const glm::vec3 cameraPerpDirection = glm::cross(camera.GetDirection(), { 0.0f, 1.0f, 0.0f });
 				const float cameraSpeed = 5.0f;
@@ -107,6 +108,14 @@ int main()
 			material.m_enableTextures = true;
 
 			Renderer::GetInstance().Render(camera, Square(transform, material));
+
+			transform.m_position = { 5.0f, 0.0f, -5.0f, };
+
+			Renderer::GetInstance().Render(camera, Triangle(transform, material));
+
+			transform.m_position = { 2.5f, 0.0f, -5.0f, };
+
+			Renderer::GetInstance().Render(camera, Circle(transform, material));
 
 			/////////////////////////
 
