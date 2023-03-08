@@ -5,10 +5,12 @@
 #include <unordered_map>
 #include <memory>
 
+using ShaderProgramPtr = std::shared_ptr<ShaderProgram>;
+
 class ShaderSystem
 {
 private:
-	std::unordered_map<std::string, ShaderProgram> m_storedShaders;
+	std::unordered_map<std::string, ShaderProgramPtr> m_storedShaders;
 
 	ShaderSystem() = default;
 public:
@@ -17,11 +19,11 @@ public:
 	// Loads shader from file and keeps a copy of it, which can be accessed using the GetShader() method.
 	void Load(const std::string_view id, ShaderProgram&& shader);
 
-	// Destroys the stored shader that is attached to the specified ID.
-	void Destroy(const std::string_view id);
+	// Removes the stored shader that is attached to the specified ID.
+	void Remove(const std::string_view id);
 
 	// Returns reference to the stored shader that is attached to the specified ID.
-	ShaderProgram& GetShader(const std::string_view& id);
+	ShaderProgramPtr& GetShader(const std::string_view& id);
 
 	// Returns singleton instance of the class.
 	static ShaderSystem& GetInstance();

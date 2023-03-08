@@ -34,7 +34,8 @@ void TextureSystem::Load(std::string_view id, std::string_view filePath, bool fl
             }
 
             // Setup and store the texture buffer
-            m_storedTextures[id.data()] = Texture2D(pixelData, { width, height }, GL_UNSIGNED_BYTE, internalFormat, format);
+            m_storedTextures[id.data()] = std::make_shared<Texture2D>(pixelData, glm::ivec2(width, height), GL_UNSIGNED_BYTE, internalFormat, 
+                format);
         }
         else
             throw FormattedException("Failed to load the texture image at path: %s.", filePath.data());
@@ -46,12 +47,12 @@ void TextureSystem::Load(std::string_view id, std::string_view filePath, bool fl
     }
 }
 
-void TextureSystem::Destroy(std::string_view id)
+void TextureSystem::Remove(std::string_view id)
 {
     m_storedTextures.erase(id.data());
 }
 
-Texture2D& TextureSystem::GetTexture(std::string_view id)
+Texture2DPtr& TextureSystem::GetTexture(std::string_view id)
 {
     auto textureIterator = m_storedTextures.find(id.data());
     if (textureIterator == m_storedTextures.end())
