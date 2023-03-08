@@ -50,15 +50,42 @@ int main()
 			accumulatedRenderTime += elapsedRenderTime;
 			while (accumulatedRenderTime >= timeStep)
 			{
-				// *The Update function should be here* //
-				InputSystem::GetInstance().Update();
-				camera.Update();
+				///////////////////////////////// CAMERA CONTROLS (TEMPORARY) /////////////////////////////////
+				const glm::vec3 cameraDirection = camera.GetDirection();
+				const glm::vec3 cameraPerpDirection = glm::cross(camera.GetDirection(), { 0.0f, 1.0f, 0.0f });
+				const float cameraSpeed = 5.0f;
 
+				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_W))
+				{
+					camera.SetPosition(camera.GetPosition() + 
+						((glm::vec3(cameraDirection.x, 0.0f, cameraDirection.z) * cameraSpeed) * timeStep));
+				}
+				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_S))
+				{
+					camera.SetPosition(camera.GetPosition() -
+						((glm::vec3(cameraDirection.x, 0.0f, cameraDirection.z) * cameraSpeed) * timeStep));
+				}
+				
+				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_A))
+					camera.SetPosition(camera.GetPosition() + ((-cameraPerpDirection * cameraSpeed) * timeStep));
+				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_D))
+					camera.SetPosition(camera.GetPosition() + ((cameraPerpDirection * cameraSpeed) * timeStep));
+
+				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_SPACE))
+					camera.SetPosition(camera.GetPosition() + ((glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed) * timeStep));
+				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_LEFT_SHIFT))
+					camera.SetPosition(camera.GetPosition() - ((glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed) * timeStep));
+
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				
 				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_ESCAPE))
 				{
 					glfwTerminate();
 					return EXIT_SUCCESS;
 				}
+
+				InputSystem::GetInstance().Update();
+				camera.Update();
 
 				accumulatedRenderTime -= timeStep;
 			}
