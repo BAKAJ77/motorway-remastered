@@ -31,11 +31,11 @@ public:
 	// Sets whether the cursor is enabled or disabled (locked to window)
 	void SetCursorMode(bool enabled) const;
 
+	// Makes the window's OpenGL context current in the thread.
+	void SetContextActive() const;
+
 	// Requests for the window to be closed.
 	void RequestClose() const;
-
-	// Clears the window's back draw buffer.
-	void Clear(const glm::vec3& fillColor);
 
 	// Swaps the window's draw buffers.
 	void Update() const;
