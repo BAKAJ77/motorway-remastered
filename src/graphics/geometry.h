@@ -1,7 +1,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include <core/texture_system.h>
+#include <core/asset_system.h>
 #include <graphics/vertex_array.h>
 #include <glm/glm.hpp>
 

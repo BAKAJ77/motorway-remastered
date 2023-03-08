@@ -1,6 +1,5 @@
 #include <core/window_frame.h>
-#include <core/shader_system.h>
-#include <core/texture_system.h>
+#include <core/asset_system.h>
 #include <core/input_system.h>
 
 #include <graphics/vertex_array.h>
@@ -37,7 +36,7 @@ int main()
 		InputSystem::GetInstance().SetFocusedWindow(applicationFrame);
 
 		// Setup other objects here (TEMPORARY)
-		TextureSystem::GetInstance().Load("Grass", "textures/test.jpg", false, false);
+		AssetSystem::GetInstance().LoadTexture("Grass", "textures/test.jpg", false, false);
 		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
 
 		// The main loop of the application
@@ -104,7 +103,7 @@ int main()
 			transform.m_size = { 1.2f, 1.2f, 1.0f };
 
 			Geometry::Material material;
-			material.m_diffuseTexture = TextureSystem::GetInstance().GetTexture("Grass");
+			material.m_diffuseTexture = AssetSystem::GetInstance().GetTexture("Grass");
 			material.m_enableTextures = true;
 
 			Renderer::GetInstance().Render(camera, Square(transform, material));

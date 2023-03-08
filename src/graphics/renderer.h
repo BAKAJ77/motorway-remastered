@@ -2,7 +2,7 @@
 #define RENDERER_H
 
 #include <core/window_frame.h>
-#include <core/shader_system.h>
+#include <core/asset_system.h>
 #include <graphics/camera_3d.h>
 #include <graphics/geometry.h>
 

@@ -15,7 +15,7 @@ void Renderer::Init() const
     glEnable(GL_DEPTH_TEST); // Enable depth testing
 
     // Initialize the shaders required by the renderer
-    ShaderSystem::GetInstance().Load("Geometry", { "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh" });
+    AssetSystem::GetInstance().LoadShader("Geometry", "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh");
 }
 
 void Renderer::Clear(ClearFlag mask, const glm::vec4& color)
@@ -26,22 +26,22 @@ void Renderer::Clear(ClearFlag mask, const glm::vec4& color)
 
 void Renderer::Render(const Camera3D& camera, const Geometry& geometry) const
 {
-    ShaderSystem::GetInstance().GetShader("Geometry")->Bind(); // Bind the geometry shader
+    AssetSystem::GetInstance().GetShader("Geometry")->Bind(); // Bind the geometry shader
 
     // Assign the matrix shader uniforms
-    ShaderSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_modelMatrix", geometry.ComputeModelMatrix());
-    ShaderSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_cameraMatrix", camera.ComputeProjectionMatrix() * 
+    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_modelMatrix", geometry.ComputeModelMatrix());
+    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_cameraMatrix", camera.ComputeProjectionMatrix() *
         camera.ComputeViewMatrix());
 
     // Assign the material shader uniforms
     const Geometry::Material& material = geometry.GetMaterialData();
 
-    ShaderSystem::GetInstance().GetShader("Geometry")->SetUniformEx("f_material.m_diffuseColor", material.m_diffuseColor);
-    ShaderSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_enableTextures", material.m_enableTextures);
+    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("f_material.m_diffuseColor", material.m_diffuseColor);
+    AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_enableTextures", material.m_enableTextures);
 
     if (material.m_diffuseTexture)
     {
-        ShaderSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_diffuseTexture", 0);
+        AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_diffuseTexture", 0);
         material.m_diffuseTexture->Bind(0); // Bind the diffuse texture
     }
 
