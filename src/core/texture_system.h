@@ -25,6 +25,7 @@ public:
 	void Remove(std::string_view id);
 
 	// Returns reference to the stored texture that is attached to the specified ID.
+	// If no texture is found with the specified ID, then nullptr will be returned.
 	Texture2DPtr GetTexture(std::string_view id);
 
 	// Returns singleton instance of the class.

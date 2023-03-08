@@ -56,7 +56,10 @@ Texture2DPtr TextureSystem::GetTexture(std::string_view id)
 {
     auto textureIterator = m_storedTextures.find(id.data());
     if (textureIterator == m_storedTextures.end())
-        throw FormattedException("No texture image exists with the ID \"%s\".", id.data());
+    {
+        LoggingSystem::GetInstance().Output("No texture image exists with the ID \"%s\".", LoggingSystem::Severity::WARNING, id.data());
+        return nullptr;
+    }
 
     return textureIterator->second;
 }

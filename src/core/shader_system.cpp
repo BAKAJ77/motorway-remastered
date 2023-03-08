@@ -22,8 +22,11 @@ ShaderProgramPtr ShaderSystem::GetShader(std::string_view id)
 {
     auto shaderIterator = m_storedShaders.find(id.data());
     if (shaderIterator == m_storedShaders.end())
-        throw FormattedException("No shader exists with the ID \"%s\".", id.data());
-
+    {
+        LoggingSystem::GetInstance().Output("No shader exists with the ID \"%s\".", LoggingSystem::Severity::WARNING, id.data());
+        return nullptr;
+    }
+    
     return shaderIterator->second;
 }
 
