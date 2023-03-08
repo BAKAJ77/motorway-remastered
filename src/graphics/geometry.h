@@ -14,6 +14,17 @@ public:
 		RENDER_ELEMENTS
 	};
 
+	enum class PrimitiveType : uint32_t
+	{
+		POINTS = 0x0000,
+		LINES = 0x0001,
+		LINE_LOOP = 0x0002,
+		LINE_STRIP = 0x0003,
+		TRIANGLES = 0x0004,
+		TRIANGLE_STRIP = 0x0005,
+		TRIANGLE_FAN = 0x0006
+	};
+	
 	struct Transform
 	{
 		glm::vec3 m_position = glm::vec3(0.0f), m_size = glm::vec3(1.0f), m_rotationAxis = glm::vec3(1.0f);
@@ -35,6 +46,7 @@ protected:
 
 	// Rendering parameters
 	RenderFunction m_renderFunc;
+	PrimitiveType m_primitiveType;
 	uint32_t m_count;
 
 	// Buffer objects
@@ -86,8 +98,11 @@ public:
 	// Returns the geometry's material data.
 	const Material& GetMaterialData() const;
 
-	// Returns enum specifying the function to use to render the geometry.
-	const RenderFunction& GetRenderFunction() const;
+	// Returns an enum specifying the function to use to render the geometry.
+	RenderFunction GetRenderFunction() const;
+
+	// Returns an enum specifying the primitive type to use when rendering the geometry.
+	PrimitiveType GetPrimitiveType() const;
 
 	// Returns the number of vertices/indices in the geometry.
 	// For geometry using RenderFunction::RENDER_ARRAYS, the number of vertices should be returned. 
@@ -104,6 +119,28 @@ public:
 	Square(const Transform& transform, const Material& material);
 
 	virtual ~Square() = default;
+};
+
+class Triangle : public Geometry
+{
+protected:
+	virtual void InitGeometryData() override;
+public:
+	Triangle();
+	Triangle(const Transform& transform, const Material& material);
+
+	virtual ~Triangle() = default;
+};
+
+class Circle : public Geometry
+{
+protected:
+	virtual void InitGeometryData() override;
+public:
+	Circle();
+	Circle(const Transform& transform, const Material& material);
+
+	virtual ~Circle() = default;
 };
 
 #endif

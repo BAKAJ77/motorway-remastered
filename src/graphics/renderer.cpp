@@ -50,9 +50,9 @@ void Renderer::Render(const Camera3D& camera, const Geometry& geometry) const
 
     // Draw the geometry
     if (geometry.GetRenderFunction() == Geometry::RenderFunction::RENDER_ARRAYS)
-        glDrawArrays(GL_TRIANGLES, 0, geometry.GetCount());
+        glDrawArrays((uint32_t)geometry.GetPrimitiveType(), 0, geometry.GetCount());
     else if (geometry.GetRenderFunction() == Geometry::RenderFunction::RENDER_ELEMENTS)
-        glDrawElements(GL_TRIANGLES, geometry.GetCount(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements((uint32_t)geometry.GetPrimitiveType(), geometry.GetCount(), GL_UNSIGNED_INT, nullptr);
 }
 
 Renderer& Renderer::GetInstance()

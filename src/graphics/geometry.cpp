@@ -7,11 +7,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Geometry::Geometry() :
-    m_count(0), m_renderFunc(RenderFunction::RENDER_ARRAYS)
+    m_count(0), m_renderFunc(RenderFunction::RENDER_ARRAYS), m_primitiveType(PrimitiveType::TRIANGLES)
 {}
 
 Geometry::Geometry(const Transform& transform, const Material& material) :
-    m_transformData(transform), m_materialData(material), m_count(0), m_renderFunc(RenderFunction::RENDER_ARRAYS)
+    m_transformData(transform), m_materialData(material), m_count(0), m_renderFunc(RenderFunction::RENDER_ARRAYS),
+    m_primitiveType(PrimitiveType::TRIANGLES)
 {}
 
 void Geometry::SetPosition(const glm::vec3& pos)
@@ -70,9 +71,14 @@ const Geometry::Material& Geometry::GetMaterialData() const
     return m_materialData;
 }
 
-const Geometry::RenderFunction& Geometry::GetRenderFunction() const
+Geometry::RenderFunction Geometry::GetRenderFunction() const
 {
     return m_renderFunc;
+}
+
+Geometry::PrimitiveType Geometry::GetPrimitiveType() const
+{
+    return m_primitiveType;
 }
 
 uint32_t Geometry::GetCount() const
@@ -95,7 +101,7 @@ Square::Square(const Transform& transform, const Material& material) :
 
 void Square::InitGeometryData()
 {
-    // Setup the buffer objects
+    // Setup the vbo, ibo and vao
     std::array<float, 20> vertices =
     {
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
@@ -113,9 +119,90 @@ void Square::InitGeometryData()
     m_indexBuffer = IndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
     m_vertexArray.AttachBuffers(m_vertexBuffer, &m_indexBuffer);
 
-    // Specify the rendering parameters
+    // Assign the rendering parameters
     m_renderFunc = RenderFunction::RENDER_ELEMENTS;
+    m_primitiveType = PrimitiveType::TRIANGLES;
     m_count = (uint32_t)indices.size();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Triangle::Triangle()
+{
+    this->InitGeometryData();
+}
+
+Triangle::Triangle(const Transform& transform, const Material& material) :
+    Geometry(transform, material)
+{
+    this->InitGeometryData();
+}
+
+void Triangle::InitGeometryData()
+{
+    // Setup the vbo and vao
+    std::array<float, 15> vertices =
+    {
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f, 0.0f, 0.5f, 1.0f
+    };
+
+    m_vertexBuffer = VertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
+    m_vertexBuffer.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+    m_vertexBuffer.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+
+    m_vertexArray.AttachBuffers(m_vertexBuffer);
+
+    // Assign the rendering parameters
+    m_renderFunc = RenderFunction::RENDER_ARRAYS;
+    m_primitiveType = PrimitiveType::TRIANGLES;
+    m_count = (uint32_t)vertices.size();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Circle::Circle()
+{
+    this->InitGeometryData();
+}
+
+Circle::Circle(const Transform& transform, const Material& material) :
+    Geometry(transform, material)
+{
+    this->InitGeometryData();
+}
+
+void Circle::InitGeometryData()
+{
+    std::vector<float> vertices({ 0.0f, 0.0f, 0.0f, 0.5f, 0.5f });
+    constexpr float angleDecrementStep = 10.0f;
+    
+    // Calculate the vertex and index data
+    for (float angle = 360; angle >= 0; angle -= angleDecrementStep)
+    {
+        const glm::vec3 vertexCoord = { glm::sin(glm::radians(angle)) / 2.0f, glm::cos(glm::radians(angle)) / 2.0f, 0.0f };
+        const glm::vec2 uvCoord = { vertexCoord.x + 0.5f, vertexCoord.y + 0.5f };
+
+        vertices.emplace_back(vertexCoord.x);
+        vertices.emplace_back(vertexCoord.y);
+        vertices.emplace_back(vertexCoord.z);
+        vertices.emplace_back(uvCoord.x);
+        vertices.emplace_back(uvCoord.y);
+    }
+
+    // Setup the vbo, ibo and vao
+    m_vertexBuffer = VertexBuffer(vertices.data(), vertices.size() * sizeof(float), GL_STATIC_DRAW);
+    m_vertexBuffer.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+    m_vertexBuffer.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+    
+    m_vertexArray.AttachBuffers(m_vertexBuffer, nullptr);
+
+    // Assign the rendering parameters
+    m_renderFunc = RenderFunction::RENDER_ARRAYS;
+    m_primitiveType = PrimitiveType::TRIANGLE_FAN;
+    m_count = (uint32_t)vertices.size();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Optimise vertex data storage and loading
