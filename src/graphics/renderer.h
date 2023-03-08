@@ -26,8 +26,10 @@ public:
 	// Clears the current active framebuffer.
 	void Clear(ClearFlag mask, const glm::vec4& color);
 
+	// Renders the given geometry onto the scene of the currently active framebuffer.
 	void Render(const Camera3D& camera, const Geometry& geometry) const;
 
+	// Returns singleton instance of the class.
 	static Renderer& GetInstance();
 };
 
