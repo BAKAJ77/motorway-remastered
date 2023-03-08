@@ -52,7 +52,7 @@ void TextureSystem::Remove(std::string_view id)
     m_storedTextures.erase(id.data());
 }
 
-Texture2DPtr& TextureSystem::GetTexture(std::string_view id)
+Texture2DPtr TextureSystem::GetTexture(std::string_view id)
 {
     auto textureIterator = m_storedTextures.find(id.data());
     if (textureIterator == m_storedTextures.end())

@@ -63,7 +63,7 @@ Renderer& Renderer::GetInstance()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Renderer::ClearFlag operator|(const Renderer::ClearFlag& lhs, const Renderer::ClearFlag& rhs)
+Renderer::ClearFlag operator|(Renderer::ClearFlag lhs, Renderer::ClearFlag rhs)
 {
     return (Renderer::ClearFlag)((uint32_t)lhs | (uint32_t)rhs);
 }

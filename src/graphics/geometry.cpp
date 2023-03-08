@@ -75,7 +75,7 @@ const Geometry::RenderFunction& Geometry::GetRenderFunction() const
     return m_renderFunc;
 }
 
-const uint32_t& Geometry::GetCount() const
+uint32_t Geometry::GetCount() const
 {
     return m_count;
 }

@@ -42,7 +42,7 @@ public:
 	const glm::vec3& GetDirection() const;
 
 	// Returns the sensitivity of the camera.
-	const float& GetSensitivity() const;
+	float GetSensitivity() const;
 
 	// Returns the FOV angle of the camera.
 	// The angle returned is in degrees.

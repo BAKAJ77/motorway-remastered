@@ -60,7 +60,7 @@ const std::vector<VertexBuffer::Layout>& VertexBuffer::GetVertexLayouts() const
     return m_vertexLayouts;
 }
 
-const uint32_t& VertexBuffer::GetID() const
+uint32_t VertexBuffer::GetID() const
 {
     return m_id;
 }

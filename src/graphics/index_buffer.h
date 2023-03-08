@@ -28,7 +28,7 @@ public:
 	void Unbind() const;
 
 	// Returns the ID of the index buffer.
-	const uint32_t& GetID() const;
+	uint32_t GetID() const;
 };
 
 #endif

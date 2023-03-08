@@ -81,7 +81,7 @@ const glm::vec3& Camera3D::GetDirection() const
     return m_frontDir;
 }
 
-const float& Camera3D::GetSensitivity() const
+float Camera3D::GetSensitivity() const
 {
     return m_sensitivity;
 }

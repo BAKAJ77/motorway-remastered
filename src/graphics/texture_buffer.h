@@ -35,10 +35,10 @@ public:
 	void Unbind() const;
 
 	// Returns the ID of the texture buffer.
-	const uint32_t& GetID() const;
+	uint32_t GetID() const;
 
 	// Returns the target enum of the texture buffer.
-	const uint32_t& GetTarget() const;
+	uint32_t GetTarget() const;
 
 	// Returns the size of the texture buffer.
 	const glm::ivec2& GetSize() const;

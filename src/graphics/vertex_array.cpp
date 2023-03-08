@@ -49,7 +49,7 @@ void VertexArray::Unbind() const
     glBindVertexArray(0);
 }
 
-const uint32_t& VertexArray::GetID() const
+uint32_t VertexArray::GetID() const
 {
     return m_id;
 }

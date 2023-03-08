@@ -46,12 +46,12 @@ void TextureBuffer::Unbind() const
     glBindTexture(m_target, 0);
 }
 
-const uint32_t& TextureBuffer::GetID() const
+uint32_t TextureBuffer::GetID() const
 {
     return m_id;
 }
 
-const uint32_t& TextureBuffer::GetTarget() const
+uint32_t TextureBuffer::GetTarget() const
 {
     return m_target;
 }

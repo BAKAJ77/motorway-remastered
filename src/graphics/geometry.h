@@ -92,7 +92,7 @@ public:
 	// Returns the number of vertices/indices in the geometry.
 	// For geometry using RenderFunction::RENDER_ARRAYS, the number of vertices should be returned. 
 	// For geometry using RenderFunction::RENDER_ELEMENTS, the number of indices should be returned. 
-	const uint32_t& GetCount() const;
+	uint32_t GetCount() const;
 };
 
 class Square : public Geometry

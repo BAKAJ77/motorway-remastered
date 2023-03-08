@@ -33,6 +33,6 @@ public:
 	static Renderer& GetInstance();
 };
 
-extern Renderer::ClearFlag operator|(const Renderer::ClearFlag& lhs, const Renderer::ClearFlag& rhs);
+extern Renderer::ClearFlag operator|(Renderer::ClearFlag lhs, Renderer::ClearFlag rhs);
 
 #endif

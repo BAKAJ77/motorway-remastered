@@ -49,7 +49,7 @@ void IndexBuffer::Unbind() const
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-const uint32_t& IndexBuffer::GetID() const
+uint32_t IndexBuffer::GetID() const
 {
     return m_id;
 }

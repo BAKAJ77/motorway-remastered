@@ -22,7 +22,7 @@ public:
 	void Unbind() const;
 
 	// Returns the ID of the vertex array object.
-	const uint32_t& GetID() const;
+	uint32_t GetID() const;
 };
 
 #endif

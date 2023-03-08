@@ -15,7 +15,7 @@ private:
 
 	// Checks if the compilation or linkage operation on the shader was successful.
 	// Throws a formatted exception if any errors were thrown by OpenGL.
-	void CheckShaderOperation(const uint32_t& id, Operation operation) const;
+	void CheckShaderOperation(uint32_t id, Operation operation) const;
 
 	// Returns the location unit of the specified uniform.
 	uint32_t GetUniformLocation(std::string_view uniformName) const;
@@ -51,7 +51,7 @@ public:
 	void Unbind() const;
 
 	// Returns the ID of the shader program.
-	const uint32_t& GetID() const;
+	uint32_t GetID() const;
 };
 
 #endif

@@ -44,7 +44,7 @@ public:
 	const std::vector<Layout>& GetVertexLayouts() const;
 
 	// Returns the ID of the vertex buffer.
-	const uint32_t& GetID() const;
+	uint32_t GetID() const;
 };
 
 #endif

@@ -78,7 +78,7 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& temp) noexcept
     return *this;
 }
 
-void ShaderProgram::CheckShaderOperation(const uint32_t& id, Operation operation) const
+void ShaderProgram::CheckShaderOperation(uint32_t id, Operation operation) const
 {
     std::unique_ptr<char> logBuffer = nullptr;
     int logLength = 0;
@@ -171,7 +171,7 @@ void ShaderProgram::Unbind() const
     glUseProgram(0);
 }
 
-const uint32_t& ShaderProgram::GetID() const
+uint32_t ShaderProgram::GetID() const
 {
     return m_id;
 }
