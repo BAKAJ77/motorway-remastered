@@ -5,7 +5,7 @@
 void ShaderSystem::Load(const std::string_view id, ShaderProgram&& shader)
 {
     if (m_storedShaders.find(id.data()) == m_storedShaders.end()) // Make sure the ID given isn't already taken
-        m_storedShaders[id.data()] = std::move(shader);
+        m_storedShaders[id.data()] = std::make_shared<ShaderProgram>(std::move(shader));
     else
     {
         LoggingSystem::GetInstance().Output("Skipped shader load operation, the ID \"%s\" has already been used.",
@@ -13,12 +13,12 @@ void ShaderSystem::Load(const std::string_view id, ShaderProgram&& shader)
     }
 }
 
-void ShaderSystem::Destroy(const std::string_view id)
+void ShaderSystem::Remove(const std::string_view id)
 {
     m_storedShaders.erase(id.data());
 }
 
-ShaderProgram& ShaderSystem::GetShader(const std::string_view& id)
+ShaderProgramPtr& ShaderSystem::GetShader(const std::string_view& id)
 {
     auto shaderIterator = m_storedShaders.find(id.data());
     if (shaderIterator == m_storedShaders.end())

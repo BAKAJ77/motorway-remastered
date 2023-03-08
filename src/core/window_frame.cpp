@@ -38,6 +38,8 @@ WindowFrame::WindowFrame(std::string_view title, const glm::ivec2& size, bool re
 	// Load the addresses for all the OpenGL functions
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 		throw FormattedException("Failed to load the addresses for the OpenGL functions.");
+
+	glfwMakeContextCurrent(NULL);
 }
 
 WindowFrame::WindowFrame(WindowFrame&& temp) noexcept :
@@ -78,17 +80,14 @@ void WindowFrame::SetCursorMode(bool enabled) const
 	glfwSetInputMode(m_windowStruct, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
+void WindowFrame::SetContextActive() const
+{
+	glfwMakeContextCurrent(m_windowStruct);
+}
+
 void WindowFrame::RequestClose() const
 {
 	glfwSetWindowShouldClose(m_windowStruct, true);
-}
-
-void WindowFrame::Clear(const glm::vec3& fillColor)
-{
-	glClearColor(std::clamp(fillColor.r / 255.0f, 0.0f, 1.0f), std::clamp(fillColor.g / 255.0f, 0.0f, 1.0f), 
-		std::clamp(fillColor.b / 255.0f, 0.0f, 1.0f), 1.0f);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void WindowFrame::Update() const

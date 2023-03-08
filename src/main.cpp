@@ -5,6 +5,7 @@
 
 #include <graphics/vertex_array.h>
 #include <graphics/camera_3d.h>
+#include <graphics/renderer.h>
 
 #include <util/formatted_exception.h>
 #include <util/logging_system.h>
@@ -26,35 +27,17 @@ int main()
 		// Create the application window
 		WindowFrame applicationFrame("Motorway Remastered", { 1600, 900 }, false, false, false);
 		applicationFrame.SetCursorMode(false);
+		applicationFrame.SetContextActive();
 		
 		LoggingSystem::GetInstance().Output("GLFW version: %s", LoggingSystem::Severity::INFO, applicationFrame.GetGLFWVersion().c_str());
 		LoggingSystem::GetInstance().Output("OpenGL version: %s", LoggingSystem::Severity::INFO, applicationFrame.GetOpenGLVersion().c_str());
-
-		// Initialize the input system
+		
+		// Initialize the rendering and input system
+		Renderer::GetInstance().Init();
 		InputSystem::GetInstance().SetFocusedWindow(applicationFrame);
 
 		// Setup other objects here (TEMPORARY)
-		ShaderSystem::GetInstance().Load("Geometry", { "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh" });
 		TextureSystem::GetInstance().Load("Grass", "textures/test.jpg", false, false);
-
-		float vertices[] = { 
-			-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 
-			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-			-0.5f,  0.5f, 0.0f, 0.0f, 1.0f,
-			 0.5f,  0.5f, 0.0f, 1.0f, 1.0f
-		};
-
-		uint32_t indices[] = { 0, 1, 2, 1, 2, 3 };
-
-		VertexBuffer vbo(vertices, sizeof(vertices), GL_STATIC_DRAW);
-		vbo.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-		vbo.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
-
-		IndexBuffer ibo(indices, sizeof(indices), GL_STATIC_DRAW);
-
-		VertexArray vao;
-		vao.AttachBuffers(vbo, &ibo);
-
 		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
 
 		// The main loop of the application
@@ -71,34 +54,36 @@ int main()
 				InputSystem::GetInstance().Update();
 				camera.Update();
 
+				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_ESCAPE))
+				{
+					glfwTerminate();
+					return EXIT_SUCCESS;
+				}
+
 				accumulatedRenderTime -= timeStep;
 			}
 
 			// Render to screen and calculate the amount time taken to render
 			const float preRenderTime = Time::GetSecondsSinceEpoch();
+
+			Renderer::GetInstance().Clear(Renderer::ClearFlag::COLOR_BUFFER_BIT | Renderer::ClearFlag::DEPTH_BUFFER_BIT, 
+				{ 0.0f, 0.0f, 0.0f, 1.0f });
 			
 			//////// TEMPORARY ///////
 
-			ShaderSystem::GetInstance().GetShader("Geometry").Bind();
-			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("diffuseTexture", 0);
-			ShaderSystem::GetInstance().GetShader("Geometry").SetUniform("useTexture", true);
+			Geometry::Transform transform;
+			transform.m_position = { 0.0f, 0.0f, -5.0f };
+			transform.m_size = { 1.2f, 1.2f, 1.0f };
 
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, { 0.0f, 0.0f, -5.0f });
-			model = glm::scale(model, { 1.2f, 1.2f, 1.0f });
+			Geometry::Material material;
+			material.m_diffuseTexture = TextureSystem::GetInstance().GetTexture("Grass");
+			material.m_enableTextures = true;
 
-			ShaderSystem::GetInstance().GetShader("Geometry").SetUniformEx("modelMatrix", model);
-			ShaderSystem::GetInstance().GetShader("Geometry").SetUniformEx("cameraMatrix", camera.GetProjectionMatrix() * camera.GetViewMatrix());
-
-			TextureSystem::GetInstance().GetTexture("Grass").Bind(0);
-			vao.Bind();
-
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+			Renderer::GetInstance().Render(camera, Square(transform, material));
 
 			/////////////////////////
 
 			applicationFrame.Update();
-			applicationFrame.Clear({ 0, 0, 0 });
 
 			const float postRenderTime = Time::GetSecondsSinceEpoch();
 			elapsedRenderTime = postRenderTime - preRenderTime;
