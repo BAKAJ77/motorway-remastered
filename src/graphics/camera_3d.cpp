@@ -61,12 +61,12 @@ void Camera3D::Update()
     m_frontDir = glm::normalize(newFrontDir);
 }
 
-glm::mat4 Camera3D::GetViewMatrix() const
+glm::mat4 Camera3D::ComputeViewMatrix() const
 {
     return glm::lookAt(m_position, m_position + m_frontDir, { 0.0f, 1.0f, 0.0f });
 }
 
-glm::mat4 Camera3D::GetProjectionMatrix() const
+glm::mat4 Camera3D::ComputeProjectionMatrix() const
 {
     return glm::perspective(m_fov, m_size.x / m_size.y, 0.1f, 1000.0f);
 }

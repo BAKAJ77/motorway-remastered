@@ -16,8 +16,8 @@ public:
 	// Sets the dimension size of the camera.
 	void SetSize(const glm::vec2& size);
 
-	virtual glm::mat4 GetViewMatrix() const = 0;
-	virtual glm::mat4 GetProjectionMatrix() const = 0;
+	virtual glm::mat4 ComputeViewMatrix() const = 0;
+	virtual glm::mat4 ComputeProjectionMatrix() const = 0;
 
 	// Returns the dimension size of the camera.
 	const glm::vec2& GetSize() const;
