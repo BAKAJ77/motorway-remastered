@@ -59,6 +59,20 @@ void AssetSystem::LoadTexture(std::string_view nameID, std::string_view imageFil
     }
 }
 
+void AssetSystem::StoreGeometryBuffers(std::string_view nameID, VertexBufferPtr vertexBuffer, IndexBufferPtr indexBuffer)
+{
+    if (!vertexBuffer)
+        throw FormattedException("No vertex buffer was given for geometry assigned with ID \"%s\".", nameID.data());
+
+    if (m_storedGeometryBuffers.find(nameID.data()) == m_storedGeometryBuffers.end()) // Make sure the ID given isn't already taken
+        m_storedGeometryBuffers[nameID.data()] = { vertexBuffer, indexBuffer };
+    else
+    {
+        LoggingSystem::GetInstance().Output("Skipped geometry buffer objects storage operation, the ID \"%s\" has already been used.",
+            LoggingSystem::Severity::WARNING, nameID.data());
+    }
+}
+
 void AssetSystem::RemoveShader(std::string_view nameID)
 {
     m_storedShaders.erase(nameID.data());
@@ -69,12 +83,19 @@ void AssetSystem::RemoveTexture(std::string_view nameID)
     m_storedTextures.erase(nameID.data());
 }
 
+void AssetSystem::RemoveGeometryBuffers(std::string_view nameID)
+{
+    m_storedGeometryBuffers.erase(nameID.data());
+}
+
 ShaderProgramPtr AssetSystem::GetShader(std::string_view nameID) const
 {
     auto shaderIterator = m_storedShaders.find(nameID.data());
     if (shaderIterator == m_storedShaders.end())
     {
-        LoggingSystem::GetInstance().Output("No shader exists with the ID \"%s\".", LoggingSystem::Severity::WARNING, nameID.data());
+        LoggingSystem::GetInstance().Output("No shader exists with the assigned ID \"%s\".", LoggingSystem::Severity::WARNING, 
+            nameID.data());
+
         return nullptr;
     }
 
@@ -86,13 +107,32 @@ Texture2DPtr AssetSystem::GetTexture(std::string_view nameID) const
     auto textureIterator = m_storedTextures.find(nameID.data());
     if (textureIterator == m_storedTextures.end())
     {
-        LoggingSystem::GetInstance().Output("No texture image exists with the ID \"%s\".", LoggingSystem::Severity::WARNING, 
+        LoggingSystem::GetInstance().Output("No texture image exists with the assigned ID \"%s\".", LoggingSystem::Severity::WARNING, 
             nameID.data());
 
         return nullptr;
     }
 
     return textureIterator->second;
+}
+
+AssetSystem::GeometryData* AssetSystem::GetGeometryBuffers(std::string_view nameID)
+{
+    auto geometryDataIterator = m_storedGeometryBuffers.find(nameID.data());
+    if (geometryDataIterator == m_storedGeometryBuffers.end())
+        return nullptr;
+
+    return &geometryDataIterator->second;
+}
+
+VertexBufferPtr AssetSystem::CreateVertexBuffer(const void* data, size_t size, uint32_t usage)
+{
+    return std::make_shared<VertexBuffer>(data, size, usage);
+}
+
+IndexBufferPtr AssetSystem::CreateIndexBuffer(const void* data, size_t size, uint32_t usage)
+{
+    return std::make_shared<IndexBuffer>(data, size, usage);
 }
 
 AssetSystem& AssetSystem::GetInstance()
