@@ -44,15 +44,12 @@ protected:
 	Transform m_transformData; // Transform data
 	Material m_materialData; // Material data
 
+	VertexArray m_vertexArray; // VAO
+
 	// Rendering parameters
 	RenderFunction m_renderFunc;
 	PrimitiveType m_primitiveType;
 	uint32_t m_count;
-
-	// Buffer objects
-	VertexBuffer m_vertexBuffer;
-	IndexBuffer m_indexBuffer;
-	VertexArray m_vertexArray;
 protected:
 	// Used for initializing the geometry's buffer objects and specifying the rendering parameters.
 	virtual void InitGeometryData() = 0;
