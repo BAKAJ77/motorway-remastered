@@ -101,28 +101,41 @@ Square::Square(const Transform& transform, const Material& material) :
 
 void Square::InitGeometryData()
 {
-    // Setup the vbo, ibo and vao
-    std::array<float, 20> vertices =
+    // Attempt to fetch the geometry's buffer objects from the asset system
+    if (AssetSystem::GeometryData* geometryData = AssetSystem::GetInstance().GetGeometryBuffers("Square"))
     {
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-    };
+        // It has been found so simply attach them to the VAO
+        m_vertexArray.AttachBuffers(*geometryData->m_vertexBuffer, geometryData->m_indexBuffer.get());
+    }
+    else
+    {
+        // Define the vertex and index data
+        std::array<float, 20> vertices =
+        {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+        };
 
-    std::array<uint32_t, 6> indices = { 0, 1, 2, 0, 2, 3 };
+        std::array<uint32_t, 6> indices = { 0, 1, 2, 0, 2, 3 };
 
-    m_vertexBuffer = VertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
-    m_vertexBuffer.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-    m_vertexBuffer.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        // Setup the vbo, ibo and vao
+        VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
 
-    m_indexBuffer = IndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
-    m_vertexArray.AttachBuffers(m_vertexBuffer, &m_indexBuffer);
+        IndexBufferPtr indexBuffer = AssetSystem::CreateIndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
+        m_vertexArray.AttachBuffers(*vertexBuffer, indexBuffer.get());
+
+        // Store the buffer objects in the asset system
+        AssetSystem::GetInstance().StoreGeometryBuffers("Square", vertexBuffer, indexBuffer);
+    }
 
     // Assign the rendering parameters
     m_renderFunc = RenderFunction::RENDER_ELEMENTS;
     m_primitiveType = PrimitiveType::TRIANGLES;
-    m_count = (uint32_t)indices.size();
+    m_count = 6;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,24 +153,37 @@ Triangle::Triangle(const Transform& transform, const Material& material) :
 
 void Triangle::InitGeometryData()
 {
-    // Setup the vbo and vao
-    std::array<float, 15> vertices =
+    // Attempt to fetch the geometry's buffer objects from the asset system
+    if (AssetSystem::GeometryData* geometryData = AssetSystem::GetInstance().GetGeometryBuffers("Triangle"))
     {
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-         0.0f,  0.5f, 0.0f, 0.5f, 1.0f
-    };
+        // It has been found so simply attach them to the VAO
+        m_vertexArray.AttachBuffers(*geometryData->m_vertexBuffer, geometryData->m_indexBuffer.get());
+    }
+    else
+    {
+        // Define the vertex data
+        std::array<float, 15> vertices =
+        {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.0f,  0.5f, 0.0f, 0.5f, 1.0f
+        };
 
-    m_vertexBuffer = VertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
-    m_vertexBuffer.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-    m_vertexBuffer.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        // Setup the vbo and vao
+        VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
 
-    m_vertexArray.AttachBuffers(m_vertexBuffer);
+        m_vertexArray.AttachBuffers(*vertexBuffer);
+
+        // Store the buffer objects in the asset system
+        AssetSystem::GetInstance().StoreGeometryBuffers("Triangle", vertexBuffer);
+    }
 
     // Assign the rendering parameters
     m_renderFunc = RenderFunction::RENDER_ARRAYS;
     m_primitiveType = PrimitiveType::TRIANGLES;
-    m_count = (uint32_t)vertices.size();
+    m_count = 3;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,33 +201,45 @@ Circle::Circle(const Transform& transform, const Material& material) :
 
 void Circle::InitGeometryData()
 {
-    std::vector<float> vertices({ 0.0f, 0.0f, 0.0f, 0.5f, 0.5f });
-    constexpr float angleDecrementStep = 10.0f;
-    
-    // Calculate the vertex and index data
-    for (float angle = 360; angle >= 0; angle -= angleDecrementStep)
+    // Attempt to fetch the geometry's buffer objects from the asset system
+    if (AssetSystem::GeometryData* geometryData = AssetSystem::GetInstance().GetGeometryBuffers("Circle"))
     {
-        const glm::vec3 vertexCoord = { glm::sin(glm::radians(angle)) / 2.0f, glm::cos(glm::radians(angle)) / 2.0f, 0.0f };
-        const glm::vec2 uvCoord = { vertexCoord.x + 0.5f, vertexCoord.y + 0.5f };
-
-        vertices.emplace_back(vertexCoord.x);
-        vertices.emplace_back(vertexCoord.y);
-        vertices.emplace_back(vertexCoord.z);
-        vertices.emplace_back(uvCoord.x);
-        vertices.emplace_back(uvCoord.y);
+        // It has been found so simply attach them to the VAO
+        m_vertexArray.AttachBuffers(*geometryData->m_vertexBuffer, geometryData->m_indexBuffer.get());
     }
+    else
+    {
+        // Calculate the vertex and index data
+        std::vector<float> vertices({ 0.0f, 0.0f, 0.0f, 0.5f, 0.5f });
+        constexpr float angleDecrementStep = 10.0f;
 
-    // Setup the vbo, ibo and vao
-    m_vertexBuffer = VertexBuffer(vertices.data(), vertices.size() * sizeof(float), GL_STATIC_DRAW);
-    m_vertexBuffer.PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-    m_vertexBuffer.PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
-    
-    m_vertexArray.AttachBuffers(m_vertexBuffer, nullptr);
+        for (float angle = 360; angle >= 0; angle -= angleDecrementStep)
+        {
+            const glm::vec3 vertexCoord = { glm::sin(glm::radians(angle)) / 2.0f, glm::cos(glm::radians(angle)) / 2.0f, 0.0f };
+            const glm::vec2 uvCoord = { vertexCoord.x + 0.5f, vertexCoord.y + 0.5f };
+
+            vertices.emplace_back(vertexCoord.x);
+            vertices.emplace_back(vertexCoord.y);
+            vertices.emplace_back(vertexCoord.z);
+            vertices.emplace_back(uvCoord.x);
+            vertices.emplace_back(uvCoord.y);
+        }
+
+        // Setup the vbo and vao
+        VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(float), GL_STATIC_DRAW);
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+
+        m_vertexArray.AttachBuffers(*vertexBuffer);
+
+        // Store the buffer objects in the asset system
+        AssetSystem::GetInstance().StoreGeometryBuffers("Circle", vertexBuffer);
+    }
 
     // Assign the rendering parameters
     m_renderFunc = RenderFunction::RENDER_ARRAYS;
     m_primitiveType = PrimitiveType::TRIANGLE_FAN;
-    m_count = (uint32_t)vertices.size();
+    m_count = 38;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
