@@ -140,4 +140,15 @@ public:
 	virtual ~Circle() = default;
 };
 
+class Cube : public Geometry
+{
+protected:
+	virtual void InitGeometryData() override;
+public:
+	Cube();
+	Cube(const Transform& transform, const Material& material);
+
+	virtual ~Cube() = default;
+};
+
 #endif

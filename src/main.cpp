@@ -108,13 +108,17 @@ int main()
 
 			Renderer::GetInstance().Render(camera, Square(transform, material));
 
-			transform.m_position = { 5.0f, 0.0f, -5.0f, };
+			transform.m_position = { 2.5f, 0.0f, -5.0f, };
 
 			Renderer::GetInstance().Render(camera, Triangle(transform, material));
 
-			transform.m_position = { 2.5f, 0.0f, -5.0f, };
+			transform.m_position = { 5.0f, 0.0f, -5.0f, };
 
 			Renderer::GetInstance().Render(camera, Circle(transform, material));
+
+			transform.m_position = { -2.5f, 0.0f, -5.0f, };
+
+			Renderer::GetInstance().Render(camera, Cube(transform, material));
 
 			/////////////////////////
 

@@ -243,4 +243,88 @@ void Circle::InitGeometryData()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO: Optimise vertex data storage and loading
+
+Cube::Cube()
+{
+    this->InitGeometryData();
+}
+
+Cube::Cube(const Transform& transform, const Material& material) :
+    Geometry(transform, material)
+{
+    this->InitGeometryData();
+}
+
+void Cube::InitGeometryData()
+{
+    // Attempt to fetch the geometry's buffer objects from the asset system
+    if (AssetSystem::GeometryData* geometryData = AssetSystem::GetInstance().GetGeometryBuffers("Cube"))
+    {
+        // It has been found so simply attach them to the VAO
+        m_vertexArray.AttachBuffers(*geometryData->m_vertexBuffer, geometryData->m_indexBuffer.get());
+    }
+    else
+    {
+        // Define the vertex and index data
+        std::array<float, 120> vertices =
+        {
+            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Front Bottom Left 0
+             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Front Bottom Right 1
+             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Front Top Right 2
+            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Front Top Left 3
+
+            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Back Top Left 4
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Back Top Right 5
+             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Back Bottom Right 6
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Back Bottom Left 7
+
+             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Right Bottom Left 8
+             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Right Bottom Right 9
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Right Top Right 10
+             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Right Top Left 11
+
+            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Left Bottom Left 12
+            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Left Top Left 13
+            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Left Top Right 14
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Left Bottom Right 15
+
+            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Top Bottom Left 16
+             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Top Bottom Right 17
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Top Top Right 18
+            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Top Top Left 19
+
+            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Bottom Bottom Left 20
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Bottom Top Left 21
+             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Bottom Top Right 22
+             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Bottom Bottom Right 23
+        };
+
+        std::array<uint32_t, 36> indices =
+        {
+            0, 1, 2, 0, 2, 3,       // Front Face
+            7, 4, 5, 7, 5, 6,       // Back Face
+            8, 9, 10, 8, 10, 11,    // Right Face
+            12, 13, 14, 12, 14, 15, // Left Face
+            16, 17, 18, 16, 18, 19, // Top Face
+            20, 21, 22, 20, 22, 23  // Bottom Face
+        };
+
+        // Setup the vbo, ibo and vao
+        VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+
+        IndexBufferPtr indexBuffer = AssetSystem::CreateIndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
+        m_vertexArray.AttachBuffers(*vertexBuffer, indexBuffer.get());
+
+        // Store the buffer objects in the asset system
+        AssetSystem::GetInstance().StoreGeometryBuffers("Cube", vertexBuffer, indexBuffer);
+    }
+
+    // Assign the rendering parameters
+    m_renderFunc = RenderFunction::RENDER_ELEMENTS;
+    m_primitiveType = PrimitiveType::TRIANGLES;
+    m_count = 36;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
