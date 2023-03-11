@@ -36,7 +36,8 @@ int main()
 		InputSystem::GetInstance().SetFocusedWindow(applicationFrame);
 
 		// Setup other objects here (TEMPORARY)
-		AssetSystem::GetInstance().LoadTexture("Grass", "textures/test.jpg", false, false);
+		AssetSystem::GetInstance().LoadTexture("Container-Diffuse-Map", "textures/container_diffuse.png", false, false);
+		AssetSystem::GetInstance().LoadTexture("Container-Specular-Map", "textures/container_specular.png", false, false);
 		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
 
 		// The main loop of the application
@@ -99,26 +100,31 @@ int main()
 			//////// TEMPORARY ///////
 
 			Geometry::Transform transform;
-			transform.m_position = { 0.0f, 0.0f, -5.0f };
+			transform.m_position = { 0.0f, -0.6f, -5.0f };
 			transform.m_size = { 1.2f, 1.2f, 1.0f };
+			transform.m_rotationAxis = { 1.0f, 0.0f, 0.0f };
+			transform.m_rotationAngle = -90.0f;
 
 			Geometry::Material material;
-			material.m_diffuseTexture = AssetSystem::GetInstance().GetTexture("Grass");
+			material.m_diffuseTexture = AssetSystem::GetInstance().GetTexture("Container-Diffuse-Map");
+			material.m_specularTexture = AssetSystem::GetInstance().GetTexture("Container-Specular-Map");
 			material.m_enableTextures = true;
 
-			Renderer::GetInstance().Render(camera, Square(transform, material));
+			SceneLighting lighting;
+			
+			Renderer::GetInstance().Render(camera, Square(transform, material), &lighting);
 
-			transform.m_position = { 2.5f, 0.0f, -5.0f, };
+			transform.m_position = { 2.5f, -0.6f, -5.0f, };
 
-			Renderer::GetInstance().Render(camera, Triangle(transform, material));
+			Renderer::GetInstance().Render(camera, Triangle(transform, material), &lighting);
 
-			transform.m_position = { 5.0f, 0.0f, -5.0f, };
+			transform.m_position = { 5.0f, -0.6f, -5.0f, };
 
-			Renderer::GetInstance().Render(camera, Circle(transform, material));
+			Renderer::GetInstance().Render(camera, Circle(transform, material), &lighting);
 
 			transform.m_position = { -2.5f, 0.0f, -5.0f, };
 
-			Renderer::GetInstance().Render(camera, Cube(transform, material));
+			Renderer::GetInstance().Render(camera, Cube(transform, material), &lighting);
 
 			/////////////////////////
 
