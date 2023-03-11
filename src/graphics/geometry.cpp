@@ -31,7 +31,12 @@ void Geometry::SetRotation(const glm::vec3& axis, float angle)
     m_transformData.m_rotationAngle = angle;
 }
 
-void Geometry::SetDiffuse(const glm::vec4& color)
+void Geometry::SetAmbient(const glm::vec3& color)
+{
+    m_materialData.m_ambientColor = color;
+}
+
+void Geometry::SetDiffuse(const glm::vec3& color)
 {
     m_materialData.m_diffuseColor = color;
 }
@@ -39,6 +44,26 @@ void Geometry::SetDiffuse(const glm::vec4& color)
 void Geometry::SetDiffuse(Texture2DPtr texture)
 {
     m_materialData.m_diffuseTexture = texture;
+}
+
+void Geometry::SetSpecular(const glm::vec3& color)
+{
+    m_materialData.m_specularColor = color;
+}
+
+void Geometry::SetSpecular(Texture2DPtr texture)
+{
+    m_materialData.m_specularTexture = texture;
+}
+
+void Geometry::SetShininess(float value)
+{
+    m_materialData.m_shininess = value;
+}
+
+void Geometry::SetOpacity(float value)
+{
+    m_materialData.m_opacity = value;
 }
 
 void Geometry::SetTexturesUsage(bool enable)
@@ -49,9 +74,9 @@ void Geometry::SetTexturesUsage(bool enable)
 glm::mat4 Geometry::ComputeModelMatrix() const
 {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::translate(modelMatrix, m_transformData.m_position);
     modelMatrix = glm::scale(modelMatrix, m_transformData.m_size);
     modelMatrix = glm::rotate(modelMatrix, glm::radians(m_transformData.m_rotationAngle), m_transformData.m_rotationAxis);
-    modelMatrix = glm::translate(modelMatrix, m_transformData.m_position);
 
     return modelMatrix;
 }
@@ -110,20 +135,21 @@ void Square::InitGeometryData()
     else
     {
         // Define the vertex and index data
-        std::array<float, 20> vertices =
+        std::array<float, 32> vertices =
         {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
         };
 
         std::array<uint32_t, 6> indices = { 0, 1, 2, 0, 2, 3 };
 
         // Setup the vbo, ibo and vao
         VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
-        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 8 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 8 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(2, GL_FLOAT, 3, 8 * sizeof(float), 5 * sizeof(float));
 
         IndexBufferPtr indexBuffer = AssetSystem::CreateIndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
         m_vertexArray.AttachBuffers(*vertexBuffer, indexBuffer.get());
@@ -162,17 +188,18 @@ void Triangle::InitGeometryData()
     else
     {
         // Define the vertex data
-        std::array<float, 15> vertices =
+        std::array<float, 24> vertices =
         {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-             0.0f,  0.5f, 0.0f, 0.5f, 1.0f
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+             0.0f,  0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f
         };
 
         // Setup the vbo and vao
         VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
-        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 8 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 8 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(2, GL_FLOAT, 3, 8 * sizeof(float), 5 * sizeof(float));
 
         m_vertexArray.AttachBuffers(*vertexBuffer);
 
@@ -210,7 +237,7 @@ void Circle::InitGeometryData()
     else
     {
         // Calculate the vertex and index data
-        std::vector<float> vertices({ 0.0f, 0.0f, 0.0f, 0.5f, 0.5f });
+        std::vector<float> vertices({ 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f });
         constexpr float angleDecrementStep = 10.0f;
 
         for (float angle = 360; angle >= 0; angle -= angleDecrementStep)
@@ -223,12 +250,18 @@ void Circle::InitGeometryData()
             vertices.emplace_back(vertexCoord.z);
             vertices.emplace_back(uvCoord.x);
             vertices.emplace_back(uvCoord.y);
+
+            // These are the normal vector components
+            vertices.emplace_back(0.0f);
+            vertices.emplace_back(0.0f);
+            vertices.emplace_back(1.0f);
         }
 
         // Setup the vbo and vao
         VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(float), GL_STATIC_DRAW);
-        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 8 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 8 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(2, GL_FLOAT, 3, 8 * sizeof(float), 5 * sizeof(float));
 
         m_vertexArray.AttachBuffers(*vertexBuffer);
 
@@ -266,37 +299,37 @@ void Cube::InitGeometryData()
     else
     {
         // Define the vertex and index data
-        std::array<float, 120> vertices =
+        std::array<float, 192> vertices =
         {
-            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Front Bottom Left 0
-             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Front Bottom Right 1
-             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Front Top Right 2
-            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Front Top Left 3
+            -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,  0.0f,  0.0f,  1.0f, // Front Bottom Left 0
+             0.5f, -0.5f,  0.5f, 1.0f, 0.0f,  0.0f,  0.0f,  1.0f, // Front Bottom Right 1
+             0.5f,  0.5f,  0.5f, 1.0f, 1.0f,  0.0f,  0.0f,  1.0f, // Front Top Right 2
+            -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,  0.0f,  0.0f,  1.0f, // Front Top Left 3
 
-            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Back Top Left 4
-             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Back Top Right 5
-             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Back Bottom Right 6
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Back Bottom Left 7
+            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,  0.0f,  0.0f, -1.0f, // Back Top Left 4
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f,  0.0f,  0.0f, -1.0f, // Back Top Right 5
+             0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  0.0f,  0.0f, -1.0f, // Back Bottom Right 6
+            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,  0.0f,  0.0f, -1.0f, // Back Bottom Left 7
 
-             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Right Bottom Left 8
-             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Right Bottom Right 9
-             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Right Top Right 10
-             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Right Top Left 11
+             0.5f, -0.5f,  0.5f, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f, // Right Bottom Left 8
+             0.5f, -0.5f, -0.5f, 1.0f, 0.0f,  1.0f,  0.0f,  0.0f, // Right Bottom Right 9
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f,  1.0f,  0.0f,  0.0f, // Right Top Right 10
+             0.5f,  0.5f,  0.5f, 0.0f, 1.0f,  1.0f,  0.0f,  0.0f, // Right Top Left 11
 
-            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Left Bottom Left 12
-            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Left Top Left 13
-            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Left Top Right 14
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Left Bottom Right 15
+            -0.5f, -0.5f,  0.5f, 0.0f, 0.0f, -1.0f,  0.0f,  0.0f, // Left Bottom Left 12
+            -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, -1.0f,  0.0f,  0.0f, // Left Top Left 13
+            -0.5f,  0.5f, -0.5f, 1.0f, 1.0f, -1.0f,  0.0f,  0.0f, // Left Top Right 14
+            -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, -1.0f,  0.0f,  0.0f, // Left Bottom Right 15
 
-            -0.5f,  0.5f,  0.5f, 1.0f, 0.0f, // Top Bottom Left 16
-             0.5f,  0.5f,  0.5f, 0.0f, 0.0f, // Top Bottom Right 17
-             0.5f,  0.5f, -0.5f, 1.0f, 1.0f, // Top Top Right 18
-            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, // Top Top Left 19
+            -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,  0.0f,  1.0f,  0.0f, // Top Bottom Left 16
+             0.5f,  0.5f,  0.5f, 1.0f, 0.0f,  0.0f,  1.0f,  0.0f, // Top Bottom Right 17
+             0.5f,  0.5f, -0.5f, 1.0f, 1.0f,  0.0f,  1.0f,  0.0f, // Top Top Right 18
+            -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,  0.0f,  1.0f,  0.0f, // Top Top Left 19
 
-            -0.5f, -0.5f,  0.5f, 1.0f, 1.0f, // Bottom Bottom Left 20
-            -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, // Bottom Top Left 21
-             0.5f, -0.5f, -0.5f, 1.0f, 0.0f, // Bottom Top Right 22
-             0.5f, -0.5f,  0.5f, 0.0f, 1.0f, // Bottom Bottom Right 23
+            -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,  0.0f, -1.0f,  0.0f, // Bottom Bottom Left 20
+            -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,  0.0f, -1.0f,  0.0f, // Bottom Top Left 21
+             0.5f, -0.5f, -0.5f, 1.0f, 1.0f,  0.0f, -1.0f,  0.0f, // Bottom Top Right 22
+             0.5f, -0.5f,  0.5f, 1.0f, 0.0f,  0.0f, -1.0f,  0.0f  // Bottom Bottom Right 23
         };
 
         std::array<uint32_t, 36> indices =
@@ -311,8 +344,9 @@ void Cube::InitGeometryData()
 
         // Setup the vbo, ibo and vao
         VertexBufferPtr vertexBuffer = AssetSystem::CreateVertexBuffer(vertices.data(), sizeof(vertices), GL_STATIC_DRAW);
-        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 5 * sizeof(float));
-        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 5 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(0, GL_FLOAT, 3, 8 * sizeof(float));
+        vertexBuffer->PushLayout(1, GL_FLOAT, 2, 8 * sizeof(float), 3 * sizeof(float));
+        vertexBuffer->PushLayout(2, GL_FLOAT, 3, 8 * sizeof(float), 5 * sizeof(float));
 
         IndexBufferPtr indexBuffer = AssetSystem::CreateIndexBuffer(indices.data(), sizeof(indices), GL_STATIC_DRAW);
         m_vertexArray.AttachBuffers(*vertexBuffer, indexBuffer.get());

@@ -15,7 +15,8 @@ void Renderer::Init() const
     glEnable(GL_DEPTH_TEST); // Enable depth testing
 
     // Initialize the shaders required by the renderer
-    AssetSystem::GetInstance().LoadShader("Geometry", "shaders/common.glsl.vsh", "shaders/geometry.glsl.fsh");
+    AssetSystem::GetInstance().LoadShader("Phong-Lighting-Geometry", "shaders/common.glsl.vsh", "shaders/phong_lighting.glsl.fsh");
+    AssetSystem::GetInstance().LoadShader("Basic-Geometry", "shaders/common.glsl.vsh", "shaders/basic.glsl.fsh");
 }
 
 void Renderer::Clear(ClearFlag mask, const glm::vec4& color)
@@ -24,25 +25,60 @@ void Renderer::Clear(ClearFlag mask, const glm::vec4& color)
     glClear((uint32_t)mask);
 }
 
-void Renderer::Render(const Camera3D& camera, const Geometry& geometry) const
+void Renderer::Render(const Camera3D& camera, const Geometry& geometry, const SceneLighting* lighting) const
 {
-    AssetSystem::GetInstance().GetShader("Geometry")->Bind(); // Bind the geometry shader
+    // Fetch and bind the geometry shader
+    const ShaderProgramPtr geometryShader = lighting ? AssetSystem::GetInstance().GetShader("Phong-Lighting-Geometry") :
+        AssetSystem::GetInstance().GetShader("Basic-Geometry");
 
-    // Assign the matrix shader uniforms
-    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_modelMatrix", geometry.ComputeModelMatrix());
-    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("v_cameraMatrix", camera.ComputeProjectionMatrix() *
-        camera.ComputeViewMatrix());
+    geometryShader->Bind();
 
-    // Assign the material shader uniforms
+    // Assign common shader uniforms
     const Geometry::Material& material = geometry.GetMaterialData();
+    const glm::mat4 modelMatrix = geometry.ComputeModelMatrix();
 
-    AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("f_material.m_diffuseColor", material.m_diffuseColor);
-    AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_enableDiffuseTexture", material.m_enableTextures);
+    geometryShader->SetUniform("v_computeLighting", lighting != nullptr);
 
+    // Space transformation matrix uniforms
+    geometryShader->SetUniformEx("v_modelMatrix", modelMatrix);
+    geometryShader->SetUniformEx("v_cameraMatrix", camera.ComputeProjectionMatrix() * camera.ComputeViewMatrix());
+
+    // Material uniforms
+    geometryShader->SetUniformEx("f_material.m_diffuseColor", material.m_diffuseColor);
+    geometryShader->SetUniform("f_material.m_opacity", material.m_opacity);
+
+    geometryShader->SetUniform("f_material.m_enableDiffuseTexture", material.m_enableTextures && material.m_diffuseTexture);
+    
     if (material.m_diffuseTexture)
     {
-        AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_diffuseTexture", 0);
+        geometryShader->SetUniform("f_material.m_diffuseTexture", 0);
         material.m_diffuseTexture->Bind(0); // Bind the diffuse texture
+    }
+
+    // Assign lighting-specific shader uniforms
+    if (lighting)
+    {
+        geometryShader->SetUniformEx("v_normalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
+        geometryShader->SetUniformEx("f_cameraPosition", camera.GetPosition());
+
+        // Material uniforms
+        geometryShader->SetUniformEx("f_material.m_ambientColor", material.m_ambientColor);
+        geometryShader->SetUniformEx("f_material.m_specularColor", material.m_specularColor);
+        geometryShader->SetUniform("f_material.m_shininess", material.m_shininess);
+
+        geometryShader->SetUniform("f_material.m_enableSpecularTexture", material.m_enableTextures && material.m_specularTexture);
+
+        if (material.m_specularTexture)
+        {
+            geometryShader->SetUniform("f_material.m_specularTexture", 1);
+            material.m_specularTexture->Bind(1); // Bind the specular texture
+        }
+
+        // Light source uniforms
+        geometryShader->SetUniformEx("f_globalLight.m_direction", lighting->m_globalLight.m_direction);
+        geometryShader->SetUniformEx("f_globalLight.m_ambientIntensity", lighting->m_globalLight.m_ambientIntensity);
+        geometryShader->SetUniformEx("f_globalLight.m_diffuseIntensity", lighting->m_globalLight.m_diffuseIntensity);
+        geometryShader->SetUniformEx("f_globalLight.m_specularIntensity", lighting->m_globalLight.m_specularIntensity);
     }
 
     // Bind the geometry vao

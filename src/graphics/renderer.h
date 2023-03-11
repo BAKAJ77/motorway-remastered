@@ -5,6 +5,7 @@
 #include <core/asset_system.h>
 #include <graphics/camera_3d.h>
 #include <graphics/geometry.h>
+#include <graphics/scene_lighting.h>
 
 class Renderer
 {
@@ -27,7 +28,8 @@ public:
 	void Clear(ClearFlag mask, const glm::vec4& color);
 
 	// Renders the given geometry onto the scene of the currently active framebuffer.
-	void Render(const Camera3D& camera, const Geometry& geometry) const;
+	// Note that the 'lighting' parameter is optional, pass nullptr if you don't want to render with lighting.
+	void Render(const Camera3D& camera, const Geometry& geometry, const SceneLighting* lighting = nullptr) const;
 
 	// Returns singleton instance of the class.
 	static Renderer& GetInstance();

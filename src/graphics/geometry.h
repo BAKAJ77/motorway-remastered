@@ -33,8 +33,9 @@ public:
 
 	struct Material
 	{
-		glm::vec4 m_diffuseColor = glm::vec4(1.0f);
-		Texture2DPtr m_diffuseTexture;
+		glm::vec3 m_ambientColor = glm::vec3(1.0f), m_diffuseColor = glm::vec3(1.0f), m_specularColor = glm::vec3(0.5f);
+		Texture2DPtr m_diffuseTexture, m_specularTexture;
+		float m_opacity = 1.0f, m_shininess = 32.0f;
 
 		// If enabled then the textures in the material are used and the color vectors are 
 		// then used to modify the texture's color.
@@ -68,14 +69,34 @@ public:
 	// Sets the rotation of the geometry.
 	void SetRotation(const glm::vec3& axis, float angle);
 
+	// Sets the ambient color of the geometry.
+	// Note that if textures for this geometry are enabled, then the color vector is ignored; the diffuse
+	// texture will be used in ambient lighting calculations instead.
+	void SetAmbient(const glm::vec3& color);
+
 	// Sets the diffuse color of the geometry.
 	// Note that if textures for this geometry are enabled, then the color vector will be used as a modifier 
 	// on the diffuse texel colors.
-	void SetDiffuse(const glm::vec4& color);
+	void SetDiffuse(const glm::vec3& color);
 
 	// Sets the diffuse texture of the geometry.
 	// Note that you will need to enable textures using SetTexturesUsage() in order for textures to appear on this geometry.
 	void SetDiffuse(Texture2DPtr texture);
+
+	// Sets the specular color of the geometry.
+	// Note that if textures for this geometry are enabled, then the color vector will be used as a modifier 
+	// on the specular texel colors.
+	void SetSpecular(const glm::vec3& color);
+
+	// Sets the specular texture of the geometry.
+	// Note that you will need to enable textures using SetTexturesUsage() in order for textures to appear on this geometry.
+	void SetSpecular(Texture2DPtr texture);
+
+	// Sets the shininess of the geometry's material.
+	void SetShininess(float value);
+
+	// Sets the master opacity of the geometry.
+	void SetOpacity(float value);
 
 	// Sets whether the material textures should be used on this geometry.
 	// If enabled, material textures should appear on the geometry and color vectors will be used as modifiers for 
