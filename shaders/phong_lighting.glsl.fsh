@@ -2,11 +2,11 @@
 
 struct Material // Struct defining the geometry's material
 {
-    vec3 m_ambientColor, m_diffuseColor, m_specularColor;
-    sampler2D m_diffuseTexture, m_specularTexture;
+    vec3 m_ambientColor, m_diffuseColor, m_specularColor, m_emissionColor;
+    sampler2D m_diffuseTexture, m_specularTexture, m_emissionTexture;
     float m_opacity, m_shininess;
 
-    bool m_enableDiffuseTexture, m_enableSpecularTexture;
+    bool m_enableDiffuseTexture, m_enableSpecularTexture, m_enableEmissionTexture;
 };
 
 struct DirectionalLight // Struct defining a global light source
@@ -65,18 +65,30 @@ vec3 ComputeSpecularComponent(DirectionalLight globalLight, Material material, v
     return globalLight.m_specularIntensity * specularColor * specularFactor;
 }
 
+vec3 ComputeEmissionComponent(Material material)
+{
+    vec3 emissionColor = vec3(0.0f);
+    if (material.m_enableEmissionTexture)
+        emissionColor = texture(material.m_emissionTexture, f_uvCoords).rgb * material.m_emissionColor;
+
+    return emissionColor;
+}
+
 void main()
 {
-    // Calculate the ambient lighting component
+    // Compute the ambient lighting component
     vec3 ambientComponent = ComputeAmbientComponent(f_globalLight, f_material);
 
-    // Calculate the diffuse lighting component
+    // Compute the diffuse lighting component
     vec3 diffuseComponent = ComputeDiffuseComponent(f_globalLight, f_material, f_normal);
 
-    // Calculate the specular lighting component
+    // Compute the specular lighting component
     vec3 specularComponent = ComputeSpecularComponent(f_globalLight, f_material, f_normal, f_cameraPosition);
 
+    // Compute the emission lighting component
+    vec3 emissionComponent = ComputeEmissionComponent(f_material);
+
     // Finally combine the computed lighting components into one final fragment color
-    gl_FragColor = vec4(ambientComponent + diffuseComponent + specularComponent,
+    gl_FragColor = vec4(ambientComponent + diffuseComponent + specularComponent + emissionComponent,
         texture(f_material.m_diffuseTexture, f_uvCoords).a * f_material.m_opacity);
 }
