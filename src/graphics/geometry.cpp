@@ -56,6 +56,16 @@ void Geometry::SetSpecular(Texture2DPtr texture)
     m_materialData.m_specularTexture = texture;
 }
 
+void Geometry::SetEmission(const glm::vec3& color)
+{
+    m_materialData.m_emissionColor = color;
+}
+
+void Geometry::SetEmission(Texture2DPtr texture)
+{
+    m_materialData.m_emissionTexture = texture;
+}
+
 void Geometry::SetShininess(float value)
 {
     m_materialData.m_shininess = value;

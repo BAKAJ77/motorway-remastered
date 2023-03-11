@@ -33,8 +33,10 @@ public:
 
 	struct Material
 	{
-		glm::vec3 m_ambientColor = glm::vec3(1.0f), m_diffuseColor = glm::vec3(1.0f), m_specularColor = glm::vec3(0.5f);
-		Texture2DPtr m_diffuseTexture, m_specularTexture;
+		glm::vec3 m_ambientColor = glm::vec3(1.0f), m_diffuseColor = glm::vec3(1.0f), m_specularColor = glm::vec3(0.5f),
+			m_emissionColor = glm::vec3(1.0f);
+
+		Texture2DPtr m_diffuseTexture, m_specularTexture, m_emissionTexture;
 		float m_opacity = 1.0f, m_shininess = 32.0f;
 
 		// If enabled then the textures in the material are used and the color vectors are 
@@ -71,7 +73,7 @@ public:
 
 	// Sets the ambient color of the geometry.
 	// Note that if textures for this geometry are enabled, then the color vector is ignored; the diffuse
-	// texture will be used in ambient lighting calculations instead.
+	// texture map will be used in ambient lighting calculations instead.
 	void SetAmbient(const glm::vec3& color);
 
 	// Sets the diffuse color of the geometry.
@@ -79,7 +81,7 @@ public:
 	// on the diffuse texel colors.
 	void SetDiffuse(const glm::vec3& color);
 
-	// Sets the diffuse texture of the geometry.
+	// Sets the diffuse texture map of the geometry.
 	// Note that you will need to enable textures using SetTexturesUsage() in order for textures to appear on this geometry.
 	void SetDiffuse(Texture2DPtr texture);
 
@@ -88,9 +90,17 @@ public:
 	// on the specular texel colors.
 	void SetSpecular(const glm::vec3& color);
 
-	// Sets the specular texture of the geometry.
+	// Sets the specular texture map of the geometry.
 	// Note that you will need to enable textures using SetTexturesUsage() in order for textures to appear on this geometry.
 	void SetSpecular(Texture2DPtr texture);
+
+	// Sets the emission color modifier for the geometry.
+	// Note that this color vector has no effect if no emission texture map is used.
+	void SetEmission(const glm::vec3& color);
+
+	// Sets the emission texture map of the geometry.
+	// Note that you will need to enable textures using SetTexturesUsage() in order for textures to appear on this geometry.
+	void SetEmission(Texture2DPtr texture);
 
 	// Sets the shininess of the geometry's material.
 	void SetShininess(float value);

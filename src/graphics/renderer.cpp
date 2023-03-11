@@ -64,14 +64,22 @@ void Renderer::Render(const Camera3D& camera, const Geometry& geometry, const Sc
         // Material uniforms
         geometryShader->SetUniformEx("f_material.m_ambientColor", material.m_ambientColor);
         geometryShader->SetUniformEx("f_material.m_specularColor", material.m_specularColor);
+        geometryShader->SetUniformEx("f_material.m_emissionColor", material.m_emissionColor);
         geometryShader->SetUniform("f_material.m_shininess", material.m_shininess);
 
         geometryShader->SetUniform("f_material.m_enableSpecularTexture", material.m_enableTextures && material.m_specularTexture);
+        geometryShader->SetUniform("f_material.m_enableEmissionTexture", material.m_enableTextures && material.m_emissionTexture);
 
         if (material.m_specularTexture)
         {
             geometryShader->SetUniform("f_material.m_specularTexture", 1);
             material.m_specularTexture->Bind(1); // Bind the specular texture
+        }
+
+        if (material.m_emissionTexture)
+        {
+            geometryShader->SetUniform("f_material.m_emissionTexture", 2);
+            material.m_emissionTexture->Bind(2); // Bind the emission texture
         }
 
         // Light source uniforms
