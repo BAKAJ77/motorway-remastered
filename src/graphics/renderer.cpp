@@ -37,7 +37,7 @@ void Renderer::Render(const Camera3D& camera, const Geometry& geometry) const
     const Geometry::Material& material = geometry.GetMaterialData();
 
     AssetSystem::GetInstance().GetShader("Geometry")->SetUniformEx("f_material.m_diffuseColor", material.m_diffuseColor);
-    AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_enableTextures", material.m_enableTextures);
+    AssetSystem::GetInstance().GetShader("Geometry")->SetUniform("f_material.m_enableDiffuseTexture", material.m_enableTextures);
 
     if (material.m_diffuseTexture)
     {
