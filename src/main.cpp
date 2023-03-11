@@ -38,6 +38,8 @@ int main()
 		// Setup other objects here (TEMPORARY)
 		AssetSystem::GetInstance().LoadTexture("Container-Diffuse-Map", "textures/container_diffuse.png", false, false);
 		AssetSystem::GetInstance().LoadTexture("Container-Specular-Map", "textures/container_specular.png", false, false);
+		AssetSystem::GetInstance().LoadTexture("Container-Emission-Map", "textures/container_emission.png", false, false);
+
 		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
 
 		// The main loop of the application
@@ -108,6 +110,7 @@ int main()
 			Geometry::Material material;
 			material.m_diffuseTexture = AssetSystem::GetInstance().GetTexture("Container-Diffuse-Map");
 			material.m_specularTexture = AssetSystem::GetInstance().GetTexture("Container-Specular-Map");
+			material.m_emissionTexture = AssetSystem::GetInstance().GetTexture("Container-Emission-Map");
 			material.m_enableTextures = true;
 
 			SceneLighting lighting;
