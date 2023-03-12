@@ -40,7 +40,7 @@ int main()
 		AssetSystem::GetInstance().LoadTexture("Container-Specular-Map", "textures/container_specular.png", false, false);
 		AssetSystem::GetInstance().LoadTexture("Container-Emission-Map", "textures/container_emission.png", false, false);
 
-		Camera3D camera({ 0.0f, 0.0f, 0.0f }, { 1600.0f, 900.0f });
+		Camera3D camera({ -2.5f, 3.0f, 0.0f }, { 1600.0f, 900.0f });
 
 		// The main loop of the application
 		constexpr float timeStep = 0.001f;
@@ -103,31 +103,41 @@ int main()
 
 			Geometry::Transform transform;
 			transform.m_position = { 0.0f, -0.6f, -5.0f };
-			transform.m_size = { 1.2f, 1.2f, 1.0f };
-			transform.m_rotationAxis = { 1.0f, 0.0f, 0.0f };
-			transform.m_rotationAngle = -90.0f;
+			transform.m_size = { 1.5f, 1.5f, 1.5f };
 
 			Geometry::Material material;
 			material.m_diffuseTexture = AssetSystem::GetInstance().GetTexture("Container-Diffuse-Map");
 			material.m_specularTexture = AssetSystem::GetInstance().GetTexture("Container-Specular-Map");
-			material.m_emissionTexture = AssetSystem::GetInstance().GetTexture("Container-Emission-Map");
+			//material.m_emissionTexture = AssetSystem::GetInstance().GetTexture("Container-Emission-Map");
 			material.m_enableTextures = true;
 
 			SceneLighting lighting;
-			
-			Renderer::GetInstance().Render(camera, Square(transform, material), &lighting);
+			lighting.m_globalLight.m_ambientIntensity = { 0.2f, 0.2f, 0.2f };
+			lighting.m_globalLight.m_enabled = false;
 
-			transform.m_position = { 2.5f, -0.6f, -5.0f, };
+			lighting.m_pointLight.m_position = { 0.0f, 3.0f, 0.0f };
+			lighting.m_pointLight.m_enabled = true;
 
-			Renderer::GetInstance().Render(camera, Triangle(transform, material), &lighting);
+			lighting.m_spotLight.m_position = camera.GetPosition();
+			lighting.m_spotLight.m_direction = camera.GetDirection();
+			lighting.m_spotLight.m_enabled = false;
 
-			transform.m_position = { 5.0f, -0.6f, -5.0f, };
+			for (float x = -10.5f; x <= 10.5f; x += 1.5f)
+			{
+				for (float z = -10.5f; z <= 10.5f; z += 1.5f)
+				{
+					transform.m_position = { x, 0.0f, z };
+					Renderer::GetInstance().Render(camera, Cube(transform, material), &lighting);
+				}
+			}
 
-			Renderer::GetInstance().Render(camera, Circle(transform, material), &lighting);
+			transform.m_position = { 0.0f, 3.0f, 0.0f };
+			transform.m_size = { 0.5f, 0.5f, 0.5f };
 
-			transform.m_position = { -2.5f, 0.0f, -5.0f, };
+			material.m_diffuseColor = { 1.0f, 1.0f, 1.0f };
+			material.m_enableTextures = false;
 
-			Renderer::GetInstance().Render(camera, Cube(transform, material), &lighting);
+			Renderer::GetInstance().Render(camera, Cube(transform, material), nullptr);
 
 			/////////////////////////
 
