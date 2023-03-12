@@ -70,7 +70,7 @@ float ComputeSpotLightFragmentIntensity(SpotLight spotLight, vec3 fragPos)
     float theta = dot(lightDir, normalize(spotLight.m_direction));
     float cosineDiff = spotLight.m_innerCutOff - spotLight.m_outerCutOff;
 
-    return clamp((theta - spotLight.m_outerCutOff) / cosineDiff, 0.0f, 1.0f);
+    return smoothstep(0.0f, 1.0f, (theta - spotLight.m_outerCutOff) / cosineDiff);
 }
 
 // Returns the computed emission component from the given material
