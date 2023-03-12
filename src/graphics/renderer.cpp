@@ -82,11 +82,41 @@ void Renderer::Render(const Camera3D& camera, const Geometry& geometry, const Sc
             material.m_emissionTexture->Bind(2); // Bind the emission texture
         }
 
-        // Light source uniforms
+        // Directional light uniforms
+        geometryShader->SetUniform("f_globalLight.m_enabled", lighting->m_globalLight.m_enabled);
+
         geometryShader->SetUniformEx("f_globalLight.m_direction", lighting->m_globalLight.m_direction);
         geometryShader->SetUniformEx("f_globalLight.m_ambientIntensity", lighting->m_globalLight.m_ambientIntensity);
         geometryShader->SetUniformEx("f_globalLight.m_diffuseIntensity", lighting->m_globalLight.m_diffuseIntensity);
         geometryShader->SetUniformEx("f_globalLight.m_specularIntensity", lighting->m_globalLight.m_specularIntensity);
+
+        // Point light uniforms
+        geometryShader->SetUniform("f_pointLight.m_enabled", lighting->m_pointLight.m_enabled);
+
+        geometryShader->SetUniformEx("f_pointLight.m_position", lighting->m_pointLight.m_position);
+        geometryShader->SetUniformEx("f_pointLight.m_ambientIntensity", lighting->m_pointLight.m_ambientIntensity);
+        geometryShader->SetUniformEx("f_pointLight.m_diffuseIntensity", lighting->m_pointLight.m_diffuseIntensity);
+        geometryShader->SetUniformEx("f_pointLight.m_specularIntensity", lighting->m_pointLight.m_specularIntensity);
+
+        geometryShader->SetUniform("f_pointLight.m_constantFactor", lighting->m_pointLight.m_constantFactor);
+        geometryShader->SetUniform("f_pointLight.m_linearFactor", lighting->m_pointLight.m_linearFactor);
+        geometryShader->SetUniform("f_pointLight.m_quadraticFactor", lighting->m_pointLight.m_quadraticFactor);
+
+        // Spot light uniforms
+        geometryShader->SetUniform("f_spotLight.m_enabled", lighting->m_spotLight.m_enabled);
+
+        geometryShader->SetUniformEx("f_spotLight.m_position", lighting->m_spotLight.m_position);
+        geometryShader->SetUniformEx("f_spotLight.m_direction", lighting->m_spotLight.m_direction);
+        geometryShader->SetUniformEx("f_spotLight.m_ambientIntensity", lighting->m_spotLight.m_ambientIntensity);
+        geometryShader->SetUniformEx("f_spotLight.m_diffuseIntensity", lighting->m_spotLight.m_diffuseIntensity);
+        geometryShader->SetUniformEx("f_spotLight.m_specularIntensity", lighting->m_spotLight.m_specularIntensity);
+
+        geometryShader->SetUniform("f_spotLight.m_constantFactor", lighting->m_spotLight.m_constantFactor);
+        geometryShader->SetUniform("f_spotLight.m_linearFactor", lighting->m_spotLight.m_linearFactor);
+        geometryShader->SetUniform("f_spotLight.m_quadraticFactor", lighting->m_spotLight.m_quadraticFactor);
+
+        geometryShader->SetUniform("f_spotLight.m_innerCutOff", glm::cos(glm::radians(lighting->m_spotLight.m_innerCutOffAngle)));
+        geometryShader->SetUniform("f_spotLight.m_outerCutOff", glm::cos(glm::radians(lighting->m_spotLight.m_outerCutOffAngle)));
     }
 
     // Bind the geometry vao
