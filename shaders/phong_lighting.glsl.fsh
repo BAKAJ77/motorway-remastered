@@ -119,7 +119,7 @@ void main()
                 f_material.m_shininess, normalDirection, cameraDirection, f_fragmentPosition);
     }
 
-    // Apply the emission material color onto the final fragment color
+    // Apply the sampled emission material color onto the final fragment color
     finalFragColor += materialEmission;
 
     // output the final fragment color
