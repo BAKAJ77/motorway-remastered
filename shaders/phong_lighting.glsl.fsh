@@ -39,6 +39,35 @@ struct SpotLight // Struct defining a spot-light source
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Returns the sampled material ambient color.
+vec3 SampleMaterialAmbientComponent(Material material);
+
+// Returns the sampled material diffuse color.
+vec3 SampleMaterialDiffuseComponent(Material material);
+
+// Returns the sampled material specular color.
+vec3 SampleMaterialSpecularComponent(Material material);
+
+// Returns the sampled material emission color.
+vec3 SampleMaterialEmissionComponent(Material material);
+
+// Returns the computed attenuation factor for the light intensity at the specified fragment position.
+float ComputeAttenuationFactor(vec3 lightPos, vec3 fragmentPos, float constantFactor, float linearFactor, float quadraticFactor);
+
+// Returns the computed color impact that the specified global-light has on the current fragment.
+vec3 ComputeLightingImpact(DirectionalLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular,
+    float materialShininess, vec3 normalDir, vec3 cameraDir);
+
+// Returns the computed color impact that the specified point-light has on the current fragment.
+vec3 ComputeLightingImpact(PointLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular, float materialShininess,
+    vec3 normalDir, vec3 cameraDir, vec3 fragmentPos);
+
+// Returns the computed color impact that the specified spot-light has on the current fragment.
+vec3 ComputeLightingImpact(SpotLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular, float materialShininess,
+    vec3 normalDir, vec3 cameraDir, vec3 fragmentPos);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Inputs from the vertex shader
 in vec2 f_uvCoords;
 in vec3 f_fragmentPosition;
@@ -46,6 +75,7 @@ in vec3 f_normal;
 
 // Lighting related uniforms
 uniform Material f_material;
+
 uniform DirectionalLight f_globalLight;
 uniform PointLight f_pointLight;
 uniform SpotLight f_spotLight;
@@ -54,27 +84,78 @@ uniform vec3 f_cameraPosition;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Returns the computed light intensity attenuation factor
-float ComputeAttenuationFactor(vec3 lightPos, vec3 fragPos, float constantFactor, float linearFactor,
-    float quadraticFactor)
+void main()
 {
-    float lightDistance = length(lightPos - fragPos);
-    return 1.0f / (constantFactor + (linearFactor * lightDistance) +
-        (quadraticFactor * (lightDistance * lightDistance)));
+    vec3 finalFragColor = vec3(0.0f);
+
+    // Calculate the normal and camera directional vectors
+    vec3 normalDirection = normalize(f_normal);
+    vec3 cameraDirection = normalize(f_cameraPosition - f_fragmentPosition);
+
+    // Sample the material lighting component colors
+    vec3 materialAmbient = SampleMaterialAmbientComponent(f_material);
+    vec3 materialDiffuse = SampleMaterialDiffuseComponent(f_material);
+    vec3 materialSpecular = SampleMaterialSpecularComponent(f_material);
+    vec3 materialEmission = SampleMaterialEmissionComponent(f_material);
+
+    // Compute the global-light color impact
+    if (f_globalLight.m_enabled)
+    {
+        finalFragColor += ComputeLightingImpact(f_globalLight, materialAmbient, materialDiffuse, materialSpecular,
+            f_material.m_shininess, normalDirection, cameraDirection);
+    }
+
+    // Compute the point-light(s) color impact
+    if (f_pointLight.m_enabled)
+    {
+            finalFragColor += ComputeLightingImpact(f_pointLight, materialAmbient, materialDiffuse, materialSpecular,
+                f_material.m_shininess, normalDirection, cameraDirection, f_fragmentPosition);
+    }
+
+    // Compute the spot-light(s) color impact
+    if (f_spotLight.m_enabled)
+    {
+            finalFragColor += ComputeLightingImpact(f_spotLight, materialAmbient, materialDiffuse, materialSpecular,
+                f_material.m_shininess, normalDirection, cameraDirection, f_fragmentPosition);
+    }
+
+    // Apply the emission material color onto the final fragment color
+    finalFragColor += materialEmission;
+
+    // output the final fragment color
+    gl_FragColor = vec4(finalFragColor, texture(f_material.m_diffuseTexture, f_uvCoords).a * f_material.m_opacity);
 }
 
-// Returns the computed light intensity from a spot-light towards the given fragment
-float ComputeSpotLightFragmentIntensity(SpotLight spotLight, vec3 fragPos)
-{
-    vec3 lightDir = normalize(fragPos - spotLight.m_position);
-    float theta = dot(lightDir, normalize(spotLight.m_direction));
-    float cosineDiff = spotLight.m_innerCutOff - spotLight.m_outerCutOff;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    return smoothstep(0.0f, 1.0f, (theta - spotLight.m_outerCutOff) / cosineDiff);
+vec3 SampleMaterialAmbientComponent(Material material)
+{
+    vec3 ambientColor = material.m_ambientColor;
+    if (material.m_enableDiffuseTexture)
+        ambientColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+
+    return ambientColor;
 }
 
-// Returns the computed emission component from the given material
-vec3 ComputeEmissionComponent(Material material)
+vec3 SampleMaterialDiffuseComponent(Material material)
+{
+    vec3 diffuseColor = material.m_diffuseColor;
+    if (material.m_enableDiffuseTexture)
+        diffuseColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+
+    return diffuseColor;
+}
+
+vec3 SampleMaterialSpecularComponent(Material material)
+{
+    vec3 specularColor = material.m_specularColor;
+    if (material.m_enableSpecularTexture)
+        specularColor *= texture(material.m_specularTexture, f_uvCoords).rgb;
+
+    return specularColor;
+}
+
+vec3 SampleMaterialEmissionComponent(Material material)
 {
     vec3 emissionColor = vec3(0.0f);
     if (material.m_enableEmissionTexture)
@@ -85,216 +166,85 @@ vec3 ComputeEmissionComponent(Material material)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Returns the ambient lighting component computed from the given global directional light
-vec3 ComputeAmbientComponent(DirectionalLight globalLight, Material material)
+float ComputeAttenuationFactor(vec3 lightPos, vec3 fragmentPos, float constantFactor, float linearFactor, float quadraticFactor)
 {
-    // Get the material's ambient color
-    vec3 ambientColor = material.m_ambientColor;
-    if (material.m_enableDiffuseTexture)
-        ambientColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
-
-    // Combine all the calculations to get the final ambient component
-    return globalLight.m_ambientIntensity * ambientColor;
+    float lightDistance = length(lightPos - fragmentPos);
+    return 1.0f / (constantFactor + (linearFactor * lightDistance) + (quadraticFactor * (lightDistance * lightDistance)));
 }
 
-// Returns the ambient lighting component computed from the given point-light
-vec3 ComputeAmbientComponent(PointLight pointLight, Material material, vec3 fragPos)
+vec3 ComputeLightingImpact(DirectionalLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular,
+    float materialShininess, vec3 normalDir, vec3 cameraDir)
 {
-    // Get the material's ambient color
-    vec3 ambientColor = material.m_ambientColor;
-    if (material.m_enableDiffuseTexture)
-        ambientColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+    // Calculate the ambient component
+    vec3 ambientComponent = materialAmbient * light.m_ambientIntensity;
 
-    // Calculate the attenuation factor
-    float attenuationFactor = ComputeAttenuationFactor(pointLight.m_position, fragPos,
-        pointLight.m_constantFactor, pointLight.m_linearFactor, pointLight.m_quadraticFactor);
+    // Calculate the diffuse component
+    vec3 lightDirection = normalize(-light.m_direction);
+    float diffuseFactor = max(dot(lightDirection, normalDir), 0.0f);
+    vec3 diffuseComponent = materialDiffuse * light.m_diffuseIntensity * diffuseFactor;
 
-    // Combine all the calculations to get the final ambient component
-    return attenuationFactor * pointLight.m_ambientIntensity * ambientColor;
+    // Calculate the specular component
+    vec3 reflectedLightDir = reflect(-lightDirection, normalDir);
+    float specularFactor = pow(max(dot(reflectedLightDir, cameraDir), 0.0f), materialShininess);
+    vec3 specularComponent = materialSpecular * light.m_specularIntensity * specularFactor;
+
+    // Return the combined components
+    return ambientComponent + diffuseComponent + specularComponent;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Returns the diffuse lighting component from the given global directional light
-vec3 ComputeDiffuseComponent(DirectionalLight globalLight, Material material, vec3 normal)
+vec3 ComputeLightingImpact(PointLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular,
+    float materialShininess, vec3 normalDir, vec3 cameraDir, vec3 fragmentPos)
 {
-    // Get the material's diffuse color
-    vec3 diffuseColor = material.m_diffuseColor;
-    if (material.m_enableDiffuseTexture)
-        diffuseColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+    // Calculate the ambient component
+    vec3 ambientComponent = materialAmbient * light.m_ambientIntensity;
 
-    // Calculate the diffuse factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(globalLight.m_direction);
-    float diffuseFactor = max(dot(-lightDir, normalDir), 0.0f);
+    // Calculate the diffuse component
+    vec3 lightDirection = normalize(light.m_position - fragmentPos);
+    float diffuseFactor = max(dot(lightDirection, normalDir), 0.0f);
+    vec3 diffuseComponent = materialDiffuse * light.m_diffuseIntensity * diffuseFactor;
 
-    // Combine all the calculations to get the final diffuse component
-    return globalLight.m_diffuseIntensity * diffuseColor * diffuseFactor;
+    // Calculate the specular component
+    vec3 reflectedLightDir = reflect(-lightDirection, normalDir);
+    float specularFactor = pow(max(dot(reflectedLightDir, cameraDir), 0.0f), materialShininess);
+    vec3 specularComponent = materialSpecular * light.m_specularIntensity * specularFactor;
+
+    // Calculate the attenuation intensity factor
+    float attenuationFactor = ComputeAttenuationFactor(light.m_position, fragmentPos, light.m_constantFactor, light.m_linearFactor,
+        light.m_quadraticFactor);
+
+    // Return the combined components
+    return (ambientComponent + diffuseComponent + specularComponent) * attenuationFactor;
 }
 
-// Returns the diffuse lighting component from the given point-light
-vec3 ComputeDiffuseComponent(PointLight pointLight, Material material, vec3 normal, vec3 fragPos)
+vec3 ComputeLightingImpact(SpotLight light, vec3 materialAmbient, vec3 materialDiffuse, vec3 materialSpecular, float materialShininess,
+    vec3 normalDir, vec3 cameraDir, vec3 fragmentPos)
 {
-    // Get the material's diffuse color
-    vec3 diffuseColor = material.m_diffuseColor;
-    if (material.m_enableDiffuseTexture)
-        diffuseColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+    // Calculate the ambient component
+    vec3 ambientComponent = materialAmbient * light.m_ambientIntensity;
 
-    // Calculate the diffuse factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(fragPos - pointLight.m_position);
-    float diffuseFactor = max(dot(-lightDir, normalDir), 0.0f);
+    // Calculate the diffuse component
+    vec3 lightDirection = normalize(light.m_position - fragmentPos);
+    float diffuseFactor = max(dot(lightDirection, normalDir), 0.0f);
+    vec3 diffuseComponent = materialDiffuse * light.m_diffuseIntensity * diffuseFactor;
 
-    // Calculate the attenuation factor
-    float attenuationFactor = ComputeAttenuationFactor(pointLight.m_position, fragPos,
-        pointLight.m_constantFactor, pointLight.m_linearFactor, pointLight.m_quadraticFactor);
+    // Calculate the specular component
+    vec3 reflectedLightDir = reflect(-lightDirection, normalDir);
+    float specularFactor = pow(max(dot(reflectedLightDir, cameraDir), 0.0f), materialShininess);
+    vec3 specularComponent = materialSpecular * light.m_specularIntensity * specularFactor;
 
-    // Combine all the calculations to get the final diffuse component
-    return attenuationFactor * pointLight.m_diffuseIntensity * diffuseColor * diffuseFactor;
-}
+    // Calculate the light intensity from the spot-light to the fragment
+    vec3 lightRayDirection = normalize(fragmentPos - light.m_position);
+    float theta = dot(lightRayDirection, normalize(light.m_direction));
+    float interpolationValue = (theta - light.m_outerCutOff) / (light.m_innerCutOff - light.m_outerCutOff);
 
-// Returns the diffuse lighting component from the given spot-light
-vec3 ComputeDiffuseComponent(SpotLight spotLight, Material material, vec3 normal, vec3 fragPos)
-{
-    // Get the material's diffuse color
-    vec3 diffuseColor = material.m_diffuseColor;
-    if (material.m_enableDiffuseTexture)
-        diffuseColor *= texture(material.m_diffuseTexture, f_uvCoords).rgb;
+    float lightRayIntensity = smoothstep(0.0f, 1.0f, interpolationValue);
 
-    // Calculate the diffuse factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(fragPos - spotLight.m_position);
-    float diffuseFactor = max(dot(-lightDir, normalDir), 0.0f);
+    // Calculate the attenuation intensity factor
+    float attenuationFactor = ComputeAttenuationFactor(light.m_position, fragmentPos, light.m_constantFactor, light.m_linearFactor,
+        light.m_quadraticFactor);
 
-    // Calculate the light intensity
-    float lightIntensity = ComputeSpotLightFragmentIntensity(spotLight, fragPos);
-
-    // Calculate the attenuation factor
-    float attenuationFactor = ComputeAttenuationFactor(spotLight.m_position, fragPos,
-        spotLight.m_constantFactor, spotLight.m_linearFactor, spotLight.m_quadraticFactor);
-
-    // Combine all the calculations to get the final diffuse component
-    return lightIntensity * attenuationFactor * spotLight.m_diffuseIntensity * diffuseColor * diffuseFactor;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Returns the specular lighting component from the given global directional light
-vec3 ComputeSpecularComponent(DirectionalLight globalLight, Material material, vec3 normal, vec3 cameraPos)
-{
-    // Get the material's specular color
-    vec3 specularColor = material.m_specularColor;
-    if (material.m_enableSpecularTexture)
-        specularColor *= texture(material.m_specularTexture, f_uvCoords).rgb;
-
-    // Calculate the specular factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(globalLight.m_direction);
-    vec3 reflectedLightDir = reflect(lightDir, normalDir);
-    vec3 cameraDir = normalize(f_cameraPosition - f_fragmentPosition);
-
-    float specularFactor = pow(max(dot(cameraDir, reflectedLightDir), 0.0f), material.m_shininess);
-
-    // Combine all the calculations to get the final specular component
-    return globalLight.m_specularIntensity * specularColor * specularFactor;
-}
-
-// Returns the specular lighting component from the given point-light
-vec3 ComputeSpecularComponent(PointLight pointLight, Material material, vec3 normal, vec3 cameraPos, vec3 fragPos)
-{
-    // Get the material's specular color
-    vec3 specularColor = material.m_specularColor;
-    if (material.m_enableSpecularTexture)
-        specularColor *= texture(material.m_specularTexture, f_uvCoords).rgb;
-
-    // Calculate the specular factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(fragPos - pointLight.m_position);
-    vec3 reflectedLightDir = reflect(lightDir, normalDir);
-    vec3 cameraDir = normalize(f_cameraPosition - f_fragmentPosition);
-
-    float specularFactor = pow(max(dot(cameraDir, reflectedLightDir), 0.0f), material.m_shininess);
-
-    // Calculate the attenuation factor
-    float attenuationFactor = ComputeAttenuationFactor(pointLight.m_position, fragPos,
-        pointLight.m_constantFactor, pointLight.m_linearFactor, pointLight.m_quadraticFactor);
-
-    // Combine all the calculations to get the final specular component
-    return attenuationFactor * pointLight.m_specularIntensity * specularColor * specularFactor;
-}
-
-// Returns the specular lighting component from the given spot-light
-vec3 ComputeSpecularComponent(SpotLight spotLight, Material material, vec3 normal, vec3 cameraPos, vec3 fragPos)
-{
-    // Get the material's specular color
-    vec3 specularColor = material.m_specularColor;
-    if (material.m_enableSpecularTexture)
-        specularColor *= texture(material.m_specularTexture, f_uvCoords).rgb;
-
-    // Calculate the specular factor
-    vec3 normalDir = normalize(normal);
-    vec3 lightDir = normalize(fragPos - spotLight.m_position);
-    vec3 reflectedLightDir = reflect(lightDir, normalDir);
-    vec3 cameraDir = normalize(f_cameraPosition - f_fragmentPosition);
-
-    float specularFactor = pow(max(dot(cameraDir, reflectedLightDir), 0.0f), material.m_shininess);
-
-    // Calculate the light intensity
-    float lightIntensity = ComputeSpotLightFragmentIntensity(spotLight, fragPos);
-
-    // Calculate the attenuation factor
-    float attenuationFactor = ComputeAttenuationFactor(spotLight.m_position, fragPos,
-        spotLight.m_constantFactor, spotLight.m_linearFactor, spotLight.m_quadraticFactor);
-
-    // Combine all the calculations to get the final specular component
-    return lightIntensity * attenuationFactor * spotLight.m_specularIntensity * specularColor * specularFactor;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void main()
-{
-    ////////////////////////////////////// PHONG-LIGHTING COMPUTATION ///////////////////////////////////////
-
-    vec3 ambientComponent = vec3(0.0f), diffuseComponent = vec3(0.0f), specularComponent = vec3(0.0f);
-
-    // Compute the ambient lighting component
-    if (f_globalLight.m_enabled)
-        ambientComponent += ComputeAmbientComponent(f_globalLight, f_material);
-
-    if (f_pointLight.m_enabled)
-        ambientComponent += ComputeAmbientComponent(f_pointLight, f_material, f_fragmentPosition);
-
-    // Compute the diffuse lighting component
-    if (f_globalLight.m_enabled)
-        diffuseComponent += ComputeDiffuseComponent(f_globalLight, f_material, f_normal);
-
-    if (f_pointLight.m_enabled)
-        diffuseComponent += ComputeDiffuseComponent(f_pointLight, f_material, f_normal, f_fragmentPosition);
-
-    if (f_spotLight.m_enabled)
-        diffuseComponent += ComputeDiffuseComponent(f_spotLight, f_material, f_normal, f_fragmentPosition);
-
-    // Compute the specular lighting component
-    if (f_globalLight.m_enabled)
-        specularComponent += ComputeSpecularComponent(f_globalLight, f_material, f_normal, f_cameraPosition);
-
-    if (f_pointLight.m_enabled)
-        specularComponent += ComputeSpecularComponent(f_pointLight, f_material, f_normal, f_cameraPosition,
-            f_fragmentPosition);
-
-    if (f_spotLight.m_enabled)
-        specularComponent += ComputeSpecularComponent(f_spotLight, f_material, f_normal, f_cameraPosition,
-            f_fragmentPosition);
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // Compute the emission component
-    vec3 emissionComponent = ComputeEmissionComponent(f_material);
-
-    // Finally combine the computed lighting components into one final fragment color
-    gl_FragColor = vec4(ambientComponent + diffuseComponent + specularComponent + emissionComponent,
-        texture(f_material.m_diffuseTexture, f_uvCoords).a * f_material.m_opacity);
+    // Return the combined components
+    return (ambientComponent + diffuseComponent + specularComponent) * lightRayIntensity * attenuationFactor;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
