@@ -5,29 +5,24 @@
 
 class Camera3D : public CameraBase
 {
-private:
-	glm::vec3 m_position, m_frontDir;
-	glm::vec2 m_prevCursorPosition, m_eulerAngles;
-	float m_fov, m_sensitivity;
-	bool m_cursorSynced = false;
+protected:
+	glm::vec3 m_position, m_direction;
+	float m_fov;
 public:
 	Camera3D();
-	Camera3D(const glm::vec3& pos, const glm::vec2& size, float fov = 45.0f, float sensitivity = 0.14f);
+	Camera3D(const glm::vec3& pos, const glm::vec2& size, const glm::vec3& dir, float fov = 45.0f);
 
-	~Camera3D() = default;
+	virtual ~Camera3D() = default;
 
 	// Sets the position of the camera.
 	void SetPosition(const glm::vec3& pos);
 
-	// Sets the sensitivity of the camera.
-	void SetSensitivity(float value);
+	// Sets the direction the camera is facing.
+	virtual void SetDirection(const glm::vec3& dir);
 
 	// Sets the FOV angle of the camera.
 	// The angle you specify should be in degrees.
 	void SetFOV(float degrees);
-
-	// Updates the direction the camera is facing based on the movement of the cursor.
-	void Update();
 
 	// Returns the computed camera view matrix.
 	glm::mat4 ComputeViewMatrix() const override;
@@ -40,9 +35,6 @@ public:
 
 	// Returns the direction the camera is facing.
 	const glm::vec3& GetDirection() const;
-
-	// Returns the sensitivity of the camera.
-	float GetSensitivity() const;
 
 	// Returns the FOV angle of the camera.
 	// The angle returned is in degrees.

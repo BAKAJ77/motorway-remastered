@@ -1,9 +1,9 @@
 #include <core/window_frame.h>
 #include <core/asset_system.h>
 #include <core/input_system.h>
+#include <core/player_actor.h>
 
 #include <graphics/vertex_array.h>
-#include <graphics/camera_3d.h>
 #include <graphics/renderer.h>
 
 #include <util/formatted_exception.h>
@@ -40,7 +40,7 @@ int main()
 		AssetSystem::GetInstance().LoadTexture("Container-Specular-Map", "textures/container_specular.png", false, false);
 		AssetSystem::GetInstance().LoadTexture("Container-Emission-Map", "textures/container_emission.png", false, false);
 
-		Camera3D camera({ -2.5f, 3.0f, 0.0f }, { 1600.0f, 900.0f });
+		PlayerActor playerActor({ -2.5f, 3.0f, 5.0f }, { 1600.0f, 900.0f }, { 0.0f, 0.0f, -1.0f }, true);
 
 		// The main loop of the application
 		constexpr float timeStep = 0.001f;
@@ -52,35 +52,6 @@ int main()
 			accumulatedRenderTime += elapsedRenderTime;
 			while (accumulatedRenderTime >= timeStep)
 			{
-				///////////////////////////////// CAMERA CONTROLS (TEMPORARY) /////////////////////////////////
-
-				const glm::vec3 cameraDirection = camera.GetDirection();
-				const glm::vec3 cameraPerpDirection = glm::cross(camera.GetDirection(), { 0.0f, 1.0f, 0.0f });
-				const float cameraSpeed = 5.0f;
-
-				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_W))
-				{
-					camera.SetPosition(camera.GetPosition() + 
-						((glm::vec3(cameraDirection.x, 0.0f, cameraDirection.z) * cameraSpeed) * timeStep));
-				}
-				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_S))
-				{
-					camera.SetPosition(camera.GetPosition() -
-						((glm::vec3(cameraDirection.x, 0.0f, cameraDirection.z) * cameraSpeed) * timeStep));
-				}
-				
-				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_A))
-					camera.SetPosition(camera.GetPosition() + ((-cameraPerpDirection * cameraSpeed) * timeStep));
-				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_D))
-					camera.SetPosition(camera.GetPosition() + ((cameraPerpDirection * cameraSpeed) * timeStep));
-
-				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_SPACE))
-					camera.SetPosition(camera.GetPosition() + ((glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed) * timeStep));
-				else if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_LEFT_SHIFT))
-					camera.SetPosition(camera.GetPosition() - ((glm::vec3(0.0f, 1.0f, 0.0f) * cameraSpeed) * timeStep));
-
-				///////////////////////////////////////////////////////////////////////////////////////////////
-				
 				if (InputSystem::GetInstance().WasKeyPressed(InputSystem::KeyCode::KEY_ESCAPE))
 				{
 					glfwTerminate();
@@ -88,7 +59,7 @@ int main()
 				}
 
 				InputSystem::GetInstance().Update();
-				camera.Update();
+				playerActor.Update(timeStep);
 
 				accumulatedRenderTime -= timeStep;
 			}
@@ -112,22 +83,22 @@ int main()
 			material.m_enableTextures = true;
 
 			SceneLighting lighting;
-			lighting.m_globalLight.m_ambientIntensity = { 0.2f, 0.2f, 0.2f };
-			lighting.m_globalLight.m_enabled = false;
+			Renderer::GetInstance().GetLighting().m_globalLight.m_ambientIntensity = { 0.2f, 0.2f, 0.2f };
+			Renderer::GetInstance().GetLighting().m_globalLight.m_enabled = false;
 
-			lighting.m_pointLight.m_position = { 0.0f, 3.0f, 0.0f };
-			lighting.m_pointLight.m_enabled = true;
+			Renderer::GetInstance().GetLighting().m_pointLight.m_position = { 0.0f, 3.0f, 0.0f };
+			Renderer::GetInstance().GetLighting().m_pointLight.m_enabled = true;
 
-			lighting.m_spotLight.m_position = camera.GetPosition();
-			lighting.m_spotLight.m_direction = camera.GetDirection();
-			lighting.m_spotLight.m_enabled = false;
+			Renderer::GetInstance().GetLighting().m_spotLight.m_position = playerActor.GetPosition();
+			Renderer::GetInstance().GetLighting().m_spotLight.m_direction = playerActor.GetDirection();
+			Renderer::GetInstance().GetLighting().m_spotLight.m_enabled = false;
 
 			for (float x = -10.5f; x <= 10.5f; x += 1.5f)
 			{
 				for (float z = -10.5f; z <= 10.5f; z += 1.5f)
 				{
 					transform.m_position = { x, 0.0f, z };
-					Renderer::GetInstance().Render(camera, Cube(transform, material), &lighting);
+					Renderer::GetInstance().Render(playerActor, Cube(transform, material), &lighting);
 				}
 			}
 
@@ -137,7 +108,7 @@ int main()
 			material.m_diffuseColor = { 1.0f, 1.0f, 1.0f };
 			material.m_enableTextures = false;
 
-			Renderer::GetInstance().Render(camera, Cube(transform, material), nullptr);
+			Renderer::GetInstance().Render(playerActor, Cube(transform, material), nullptr);
 
 			/////////////////////////
 
