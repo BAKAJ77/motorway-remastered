@@ -67,8 +67,10 @@ void PlayerActor::UpdateDirection()
     m_prevCursorPosition = currentCursorPosition;
 
     // Update the yaw and pitch angle values using the calculated cursor offset values
-    m_yaw += (cursorOffset.x * m_sensitivity);
-    m_pitch += (cursorOffset.y * m_sensitivity);
+    // The glm::mod function prevents the yaw value from getting too large
+    // Large values can result in floating precision being lost
+    m_yaw = glm::mod(m_yaw + (cursorOffset.x * m_sensitivity), -360.0f);
+    m_pitch += cursorOffset.y * m_sensitivity;
 
     // Constrain the pitch values to prevent camera flipping
     if (m_pitch > 89.0f)
